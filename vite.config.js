@@ -1,4 +1,5 @@
 import tailwindcss from '@tailwindcss/vite'
+import glsl from 'vite-plugin-glsl'
 
 export default {
   root: 'src/',
@@ -11,5 +12,5 @@ export default {
     emptyOutDir: true,
     sourcemap: true,
   },
-  plugins: [tailwindcss()],
+  plugins: [tailwindcss(), glsl()],
 }
