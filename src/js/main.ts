@@ -4,12 +4,14 @@
  */
 import * as THREE from 'three'
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js'
+import vertexShader from './shader/particle/vertex.glsl'
+import fragmentShader from './shader/particle/fragment.glsl'
 
 class Main {
   /**
-   * @type {THREE.Mesh}
+   * @type {THREE.Points}
    */
-  #mesh: THREE.Mesh
+  #points: THREE.Points
 
   /**
    * @type {OrbitControls}
@@ -37,7 +39,7 @@ class Main {
   constructor() {
     this.#initScene()
     this.#initCamera()
-    this.#initMesh()
+    this.#initPoints()
     this.#initRenderer()
     this.#initControls()
 
@@ -57,6 +59,11 @@ class Main {
     requestAnimationFrame(this.#animate.bind(this))
   }
 
+  /**
+   * Resize renderer
+   *
+   * @returns {void}
+   */
   #resizeRenderer(): void {
     this.#camera.aspect = window.innerWidth / window.innerHeight
     this.#camera.updateProjectionMatrix()
@@ -91,23 +98,32 @@ class Main {
     if (dpr < 2) {
       antialias = true
     }
-    this.#renderer = new THREE.WebGLRenderer({canvas: canvas, antialias: antialias})
+    this.#renderer = new THREE.WebGLRenderer({
+      canvas: canvas,
+      antialias: antialias,
+    })
     this.#resizeRenderer()
 
     window.addEventListener('resize', this.#resizeRenderer.bind(this))
   }
 
   /**
-   * Init mesh
+   * Init points
    *
    * @returns {void}
    */
-  #initMesh(): void {
-    this.#mesh = new THREE.Mesh(
-      new THREE.BoxGeometry(1, 1, 1),
-      new THREE.MeshBasicMaterial({ color: 0x00ffff })
+  #initPoints(): void {
+    this.#points = new THREE.Points(
+      new THREE.SphereGeometry(),
+      new THREE.ShaderMaterial({
+        vertexShader: vertexShader,
+        fragmentShader: fragmentShader,
+        uniforms: {
+          uPointSize: new THREE.Uniform(5),
+        },
+      }),
     )
-    this.#scene.add(this.#mesh)
+    this.#scene.add(this.#points)
   }
 
   /**
@@ -116,7 +132,12 @@ class Main {
    * @returns {void}
    */
   #initCamera(): void {
-    this.#camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
+    this.#camera = new THREE.PerspectiveCamera(
+      75,
+      window.innerWidth / window.innerHeight,
+      0.1,
+      1000,
+    )
 
     this.#camera.position.z = 2
     this.#scene.add(this.#camera)
