@@ -2,16 +2,37 @@
  * @description Main
  * @author      C. M. de Picciotto <d3p1@d3p1.dev> (https://d3p1.dev/)
  */
+import {ShaderMaterial} from 'three'
 import * as THREE from 'three'
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js'
+import {
+  GPUComputationRenderer,
+  Variable,
+} from 'three/examples/jsm/misc/GPUComputationRenderer.js'
 import vertexShader from './shader/particle/vertex.glsl'
 import fragmentShader from './shader/particle/fragment.glsl'
+import gpGpufragmentShader from './shader/gpgpu/fragment.glsl'
 
 class Main {
   /**
    * @type {THREE.Points}
    */
   #points: THREE.Points
+
+  /**
+   * @type {Mesh}
+   */
+  #baseMesh: THREE.Mesh
+
+  /**
+   * @type {GPUComputationRenderer}
+   */
+  #gpgpu: GPUComputationRenderer
+
+  /**
+   * @type {Variable}
+   */
+  #gpgpuPointVar: Variable
 
   /**
    * @type {OrbitControls}
@@ -39,9 +60,11 @@ class Main {
   constructor() {
     this.#initScene()
     this.#initCamera()
-    this.#initPoints()
+    this.#initBaseMesh()
     this.#initRenderer()
     this.#initControls()
+    this.#initGpGpu()
+    this.#initPoints()
 
     this.#animate()
   }
@@ -53,6 +76,11 @@ class Main {
    */
   #animate(): void {
     this.#controls.update()
+
+    this.#gpgpu.compute()
+    const fbo = this.#gpgpu.getCurrentRenderTarget(this.#gpgpuPointVar).texture
+    const material = this.#points.material as ShaderMaterial
+    material.uniforms.uPointPositionTexture.value = fbo
 
     this.#renderer.render(this.#scene, this.#camera)
 
@@ -70,6 +98,92 @@ class Main {
 
     this.#renderer.setSize(window.innerWidth, window.innerHeight)
     this.#renderer.setPixelRatio(this.#getPixelRatio())
+  }
+
+  /**
+   * Init points
+   *
+   * @returns {void}
+   */
+  #initPoints(): void {
+    this.#points = new THREE.Points(
+      new THREE.BufferGeometry(),
+      new THREE.ShaderMaterial({
+        vertexShader: vertexShader,
+        fragmentShader: fragmentShader,
+        uniforms: {
+          uPointSize: new THREE.Uniform(5),
+          uPointPositionTexture: new THREE.Uniform(null),
+        },
+      }),
+    )
+
+    this.#points.geometry.setDrawRange(
+      0,
+      this.#baseMesh.geometry.attributes.position.count,
+    )
+
+    /**
+     * @todo Analyze if the uv should be generated using the points or the
+     *       texture
+     */
+    const uvArray = new Float32Array(
+      this.#baseMesh.geometry.attributes.position.count * 2,
+    )
+    const renderTarget = this.#gpgpu.getCurrentRenderTarget(this.#gpgpuPointVar)
+    const width = renderTarget.width
+    const height = renderTarget.height
+
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const i = (y * width + x) * 2
+
+        uvArray[i + 0] = (x + 0.5) / width
+        uvArray[i + 1] = (y + 0.5) / height
+      }
+    }
+    this.#points.geometry.setAttribute(
+      'aUvPoint',
+      new THREE.BufferAttribute(uvArray, 2),
+    )
+
+    this.#scene.add(this.#points)
+  }
+
+  /**
+   * Init GPGPU
+   *
+   * @returns {void}
+   */
+  #initGpGpu(): void {
+    const vertices = this.#baseMesh.geometry.attributes.position.count
+    const size = Math.ceil(Math.sqrt(vertices))
+
+    this.#gpgpu = new GPUComputationRenderer(size, size, this.#renderer)
+
+    const texture = this.#gpgpu.createTexture()
+    for (let i = 0; i < vertices; i++) {
+      const i3 = i * 3
+      const i4 = i * 4
+      const data = texture.image.data as Float32Array
+      const position = this.#baseMesh.geometry.attributes.position.array
+
+      data[i4 + 0] = position[i3 + 0]
+      data[i4 + 1] = position[i3 + 1]
+      data[i4 + 2] = position[i3 + 2]
+      data[i4 + 4] = 0
+    }
+
+    this.#gpgpuPointVar = this.#gpgpu.addVariable(
+      'texturePoint',
+      gpGpufragmentShader,
+      texture,
+    )
+    this.#gpgpu.setVariableDependencies(this.#gpgpuPointVar, [
+      this.#gpgpuPointVar,
+    ])
+
+    this.#gpgpu.init()
   }
 
   /**
@@ -108,22 +222,15 @@ class Main {
   }
 
   /**
-   * Init points
+   * Init base mesh
    *
    * @returns {void}
    */
-  #initPoints(): void {
-    this.#points = new THREE.Points(
+  #initBaseMesh(): void {
+    this.#baseMesh = new THREE.Mesh(
       new THREE.SphereGeometry(),
-      new THREE.ShaderMaterial({
-        vertexShader: vertexShader,
-        fragmentShader: fragmentShader,
-        uniforms: {
-          uPointSize: new THREE.Uniform(5),
-        },
-      }),
+      new THREE.MeshBasicMaterial({}),
     )
-    this.#scene.add(this.#points)
   }
 
   /**
