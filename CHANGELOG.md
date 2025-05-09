@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/d3p1/thr2pxl/compare/v1.2.0...v1.3.0) (2025-05-09)
+
+
+### Features
+
+* init gpgpu logic [[#1](https://github.com/d3p1/thr2pxl/issues/1)] ([41dcb0a](https://github.com/d3p1/thr2pxl/commit/41dcb0a45588f09b86cd64902f2a90695d3abef6))
+
 # [1.2.0](https://github.com/d3p1/thr2pxl/compare/v1.1.0...v1.2.0) (2025-05-09)
 
 
