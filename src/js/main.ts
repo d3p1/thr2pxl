@@ -4,6 +4,7 @@
  */
 import {ShaderMaterial} from 'three'
 import * as THREE from 'three'
+import {Timer} from 'three/examples/jsm/misc/Timer.js'
 import {GLTF, GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js'
 import {DRACOLoader} from 'three/examples/jsm/loaders/DRACOLoader.js'
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js'
@@ -57,10 +58,16 @@ class Main {
   #scene: THREE.Scene
 
   /**
+   * @type {Timer}
+   */
+  #timer: Timer
+
+  /**
    * Constructor
    */
   constructor() {
     this.#initModel()
+    this.#initTimer()
     this.#initScene()
     this.#initCamera()
     this.#initRenderer()
@@ -72,11 +79,19 @@ class Main {
   /**
    * Animate
    *
+   * @param   {number} t
    * @returns {void}
    */
-  #animate(): void {
+  #animate(t: number = 0): void {
     if (this.#gpgpu) {
+      this.#timer.update(t)
+
       this.#controls.update()
+
+      this.#gpgpuPointVar.material.uniforms.uTime.value =
+        this.#timer.getElapsed()
+      this.#gpgpuPointVar.material.uniforms.uDeltaTime.value =
+        this.#timer.getDelta()
 
       this.#gpgpu.compute()
       const fbo = this.#gpgpu.getCurrentRenderTarget(
@@ -131,19 +146,22 @@ class Main {
      * @todo Analyze if the uv should be generated using the points or the
      *       texture
      */
-    const uvArray = new Float32Array(
-      this.#model.geometry.attributes.position.count * 2,
-    )
+    const vertices = this.#model.geometry.attributes.position.count
+    const randomSizeArray = new Float32Array(vertices)
+    const uvArray = new Float32Array(vertices * 2)
     const renderTarget = this.#gpgpu.getCurrentRenderTarget(this.#gpgpuPointVar)
     const width = renderTarget.width
     const height = renderTarget.height
 
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
-        const i = (y * width + x) * 2
+        const i = y * width + x
+        const i2 = i * 2
 
-        uvArray[i + 0] = (x + 0.5) / width
-        uvArray[i + 1] = (y + 0.5) / height
+        uvArray[i2 + 0] = (x + 0.5) / width
+        uvArray[i2 + 1] = (y + 0.5) / height
+
+        randomSizeArray[i] = Math.random()
       }
     }
     this.#points.geometry.setAttribute(
@@ -153,6 +171,10 @@ class Main {
     this.#points.geometry.setAttribute(
       'aColor',
       this.#model.geometry.attributes.color,
+    )
+    this.#points.geometry.setAttribute(
+      'aPointSize',
+      new THREE.BufferAttribute(randomSizeArray, 1),
     )
 
     this.#scene.add(this.#points)
@@ -179,7 +201,7 @@ class Main {
       data[i4 + 0] = position[i3 + 0]
       data[i4 + 1] = position[i3 + 1]
       data[i4 + 2] = position[i3 + 2]
-      data[i4 + 4] = 0
+      data[i4 + 3] = Math.random()
     }
 
     this.#gpgpuPointVar = this.#gpgpu.addVariable(
@@ -190,6 +212,12 @@ class Main {
     this.#gpgpu.setVariableDependencies(this.#gpgpuPointVar, [
       this.#gpgpuPointVar,
     ])
+
+    this.#gpgpuPointVar.material.uniforms.uTime = new THREE.Uniform(0)
+    this.#gpgpuPointVar.material.uniforms.uDeltaTime = new THREE.Uniform(0)
+    this.#gpgpuPointVar.material.uniforms.uBasePosition = new THREE.Uniform(
+      texture,
+    )
 
     this.#gpgpu.init()
   }
@@ -243,6 +271,7 @@ class Main {
     )
 
     this.#camera.position.z = 10
+    this.#camera.position.x = 5
     this.#scene.add(this.#camera)
   }
 
@@ -253,6 +282,15 @@ class Main {
    */
   #initScene(): void {
     this.#scene = new THREE.Scene()
+  }
+
+  /**
+   * Init timer
+   *
+   * @returns {void}
+   */
+  #initTimer(): void {
+    this.#timer = new Timer()
   }
 
   /**
