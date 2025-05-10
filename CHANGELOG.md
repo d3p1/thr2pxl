@@ -1,3 +1,12 @@
+# [1.4.0](https://github.com/d3p1/thr2pxl/compare/v1.3.0...v1.4.0) (2025-05-10)
+
+
+### Features
+
+* add draco library and model for effect [[#1](https://github.com/d3p1/thr2pxl/issues/1)] ([fd3e112](https://github.com/d3p1/thr2pxl/commit/fd3e112943757fe8b8dc31abb4dc3c789c1c2ef8))
+* add model [[#1](https://github.com/d3p1/thr2pxl/issues/1)] ([189b21d](https://github.com/d3p1/thr2pxl/commit/189b21dcabd2dff2f838ad5609d469fd907903d1))
+* init effect [[#1](https://github.com/d3p1/thr2pxl/issues/1)] ([05d822d](https://github.com/d3p1/thr2pxl/commit/05d822d3e66bedfa010cb3de78d9c3d8aabd0e5b))
+
 # [1.3.0](https://github.com/d3p1/thr2pxl/compare/v1.2.0...v1.3.0) (2025-05-09)
 
 
