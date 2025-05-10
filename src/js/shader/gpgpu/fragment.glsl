@@ -5,6 +5,10 @@
 uniform float     uTime;
 uniform float     uDeltaTime;
 uniform sampler2D uBasePosition;
+uniform float     uFlowFieldChangeFrequency;
+uniform float     uFlowFieldStrength;
+uniform float     uFlowFieldStrengthRatio;
+uniform float     uParticleLifeDecay;
 
 #include ../utils/calcSimplexNoise4d.glsl
 
@@ -12,10 +16,6 @@ void main() {
     vec2  uv                       = gl_FragCoord.xy / resolution.xy;
     vec4  position                 = texture(texturePoint, uv);
     vec4  basePosition             = texture(uBasePosition, uv);
-    float flowFieldChangeFrequency = 0.5;
-    float flowFieldStrength        = 0.5;
-    float flowFieldStrengthRatio   = 0.25;
-    float particleDecay            = 0.01;
 
     if (position.a >= 1.0) {
         position.a   = 0.0;
@@ -23,29 +23,29 @@ void main() {
     }
     else {
         float strength = calcSimplexNoise4d(
-            vec4(basePosition.xyz, uTime * flowFieldChangeFrequency)
+            vec4(basePosition.xyz, uTime * uFlowFieldChangeFrequency)
         );
         strength = smoothstep(
-            1.0 - (flowFieldStrengthRatio) * 2.0,
+            1.0 - (uFlowFieldStrengthRatio) * 2.0,
             1.0,
             strength
         );
 
         vec3 flowField = vec3(
             calcSimplexNoise4d(
-                vec4(position.xyz + 0.0, uTime * flowFieldChangeFrequency)
+                vec4(position.xyz + 0.0, uTime * uFlowFieldChangeFrequency)
             ),
             calcSimplexNoise4d(
-                vec4(position.xyz + 1.0, uTime * flowFieldChangeFrequency)
+                vec4(position.xyz + 1.0, uTime * uFlowFieldChangeFrequency)
             ),
             calcSimplexNoise4d(
-                vec4(position.xyz + 2.0, uTime * flowFieldChangeFrequency)
+                vec4(position.xyz + 2.0, uTime * uFlowFieldChangeFrequency)
             )
         );
         flowField     = normalize(flowField);
-        position.xyz += flowField * strength * flowFieldStrength * uDeltaTime;
+        position.xyz += flowField * strength * uFlowFieldStrength * uDeltaTime;
 
-        position.a += particleDecay * uDeltaTime;
+        position.a += uParticleLifeDecay * uDeltaTime;
     }
 
     gl_FragColor = position;

@@ -2,7 +2,7 @@
  * @description Main
  * @author      C. M. de Picciotto <d3p1@d3p1.dev> (https://d3p1.dev/)
  */
-import {ShaderMaterial} from 'three'
+import {Pane} from 'tweakpane'
 import * as THREE from 'three'
 import {Timer} from 'three/examples/jsm/misc/Timer.js'
 import {GLTF, GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js'
@@ -58,6 +58,11 @@ class Main {
   #scene: THREE.Scene
 
   /**
+   * @type {Pane}
+   */
+  #debugger: Pane
+
+  /**
    * @type {Timer}
    */
   #timer: Timer
@@ -97,7 +102,7 @@ class Main {
       const fbo = this.#gpgpu.getCurrentRenderTarget(
         this.#gpgpuPointVar,
       ).texture
-      const material = this.#points.material as ShaderMaterial
+      const material = this.#points.material as THREE.ShaderMaterial
       material.uniforms.uPointPositionTexture.value = fbo
 
       this.#renderer.render(this.#scene, this.#camera)
@@ -117,6 +122,50 @@ class Main {
 
     this.#renderer.setSize(window.innerWidth, window.innerHeight)
     this.#renderer.setPixelRatio(this.#getPixelRatio())
+  }
+
+  /**
+   * Init debugger
+   *
+   * @returns {void}
+   */
+  #initDebugger(): void {
+    this.#debugger = new Pane()
+
+    const {
+      uFlowFieldChangeFrequency,
+      uFlowFieldStrength,
+      uFlowFieldStrengthRatio,
+      uParticleLifeDecay,
+    } = this.#gpgpuPointVar.material.uniforms
+
+    this.#debugger.addBinding(uFlowFieldChangeFrequency, 'value', {
+      min: 0,
+      max: 5,
+      step: 0.01,
+      label: 'uFlowFieldChangeFrequency',
+    })
+
+    this.#debugger.addBinding(uFlowFieldStrength, 'value', {
+      min: 0,
+      max: 5,
+      step: 0.01,
+      label: 'uFlowFieldStrength',
+    })
+
+    this.#debugger.addBinding(uFlowFieldStrengthRatio, 'value', {
+      min: 0,
+      max: 1,
+      step: 0.01,
+      label: 'uFlowFieldStrengthRatio',
+    })
+
+    this.#debugger.addBinding(uParticleLifeDecay, 'value', {
+      min: 0,
+      max: 1,
+      step: 0.01,
+      label: 'uParticleLifeDecay',
+    })
   }
 
   /**
@@ -218,6 +267,14 @@ class Main {
     this.#gpgpuPointVar.material.uniforms.uBasePosition = new THREE.Uniform(
       texture,
     )
+    this.#gpgpuPointVar.material.uniforms.uFlowFieldChangeFrequency =
+      new THREE.Uniform(0.5)
+    this.#gpgpuPointVar.material.uniforms.uFlowFieldStrength =
+      new THREE.Uniform(0.5)
+    this.#gpgpuPointVar.material.uniforms.uFlowFieldStrengthRatio =
+      new THREE.Uniform(0.25)
+    this.#gpgpuPointVar.material.uniforms.uParticleLifeDecay =
+      new THREE.Uniform(0.01)
 
     this.#gpgpu.init()
   }
@@ -308,6 +365,7 @@ class Main {
       this.#model = model.scene.children[0] as THREE.Mesh
       this.#initGpGpu()
       this.#initPoints()
+      this.#initDebugger()
     })
   }
 
