@@ -4,6 +4,8 @@
  */
 import {ShaderMaterial} from 'three'
 import * as THREE from 'three'
+import {GLTF, GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js'
+import {DRACOLoader} from 'three/examples/jsm/loaders/DRACOLoader.js'
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js'
 import {
   GPUComputationRenderer,
@@ -20,9 +22,9 @@ class Main {
   #points: THREE.Points
 
   /**
-   * @type {Mesh}
+   * @type {THREE.Mesh}
    */
-  #baseMesh: THREE.Mesh
+  #model: THREE.Mesh
 
   /**
    * @type {GPUComputationRenderer}
@@ -58,13 +60,11 @@ class Main {
    * Constructor
    */
   constructor() {
+    this.#initModel()
     this.#initScene()
     this.#initCamera()
-    this.#initBaseMesh()
     this.#initRenderer()
     this.#initControls()
-    this.#initGpGpu()
-    this.#initPoints()
 
     this.#animate()
   }
@@ -75,14 +75,18 @@ class Main {
    * @returns {void}
    */
   #animate(): void {
-    this.#controls.update()
+    if (this.#gpgpu) {
+      this.#controls.update()
 
-    this.#gpgpu.compute()
-    const fbo = this.#gpgpu.getCurrentRenderTarget(this.#gpgpuPointVar).texture
-    const material = this.#points.material as ShaderMaterial
-    material.uniforms.uPointPositionTexture.value = fbo
+      this.#gpgpu.compute()
+      const fbo = this.#gpgpu.getCurrentRenderTarget(
+        this.#gpgpuPointVar,
+      ).texture
+      const material = this.#points.material as ShaderMaterial
+      material.uniforms.uPointPositionTexture.value = fbo
 
-    this.#renderer.render(this.#scene, this.#camera)
+      this.#renderer.render(this.#scene, this.#camera)
+    }
 
     requestAnimationFrame(this.#animate.bind(this))
   }
@@ -120,7 +124,7 @@ class Main {
 
     this.#points.geometry.setDrawRange(
       0,
-      this.#baseMesh.geometry.attributes.position.count,
+      this.#model.geometry.attributes.position.count,
     )
 
     /**
@@ -128,7 +132,7 @@ class Main {
      *       texture
      */
     const uvArray = new Float32Array(
-      this.#baseMesh.geometry.attributes.position.count * 2,
+      this.#model.geometry.attributes.position.count * 2,
     )
     const renderTarget = this.#gpgpu.getCurrentRenderTarget(this.#gpgpuPointVar)
     const width = renderTarget.width
@@ -146,6 +150,10 @@ class Main {
       'aUvPoint',
       new THREE.BufferAttribute(uvArray, 2),
     )
+    this.#points.geometry.setAttribute(
+      'aColor',
+      this.#model.geometry.attributes.color,
+    )
 
     this.#scene.add(this.#points)
   }
@@ -156,7 +164,7 @@ class Main {
    * @returns {void}
    */
   #initGpGpu(): void {
-    const vertices = this.#baseMesh.geometry.attributes.position.count
+    const vertices = this.#model.geometry.attributes.position.count
     const size = Math.ceil(Math.sqrt(vertices))
 
     this.#gpgpu = new GPUComputationRenderer(size, size, this.#renderer)
@@ -166,7 +174,7 @@ class Main {
       const i3 = i * 3
       const i4 = i * 4
       const data = texture.image.data as Float32Array
-      const position = this.#baseMesh.geometry.attributes.position.array
+      const position = this.#model.geometry.attributes.position.array
 
       data[i4 + 0] = position[i3 + 0]
       data[i4 + 1] = position[i3 + 1]
@@ -222,18 +230,6 @@ class Main {
   }
 
   /**
-   * Init base mesh
-   *
-   * @returns {void}
-   */
-  #initBaseMesh(): void {
-    this.#baseMesh = new THREE.Mesh(
-      new THREE.SphereGeometry(),
-      new THREE.MeshBasicMaterial({}),
-    )
-  }
-
-  /**
    * Init camera
    *
    * @returns {void}
@@ -246,7 +242,7 @@ class Main {
       1000,
     )
 
-    this.#camera.position.z = 2
+    this.#camera.position.z = 10
     this.#scene.add(this.#camera)
   }
 
@@ -257,6 +253,24 @@ class Main {
    */
   #initScene(): void {
     this.#scene = new THREE.Scene()
+  }
+
+  /**
+   * Init model
+   *
+   * @returns {void}
+   */
+  #initModel(): void {
+    const loader = new GLTFLoader()
+    const dracoLoader = new DRACOLoader()
+    dracoLoader.setDecoderPath('/thr2pxl/js/draco/')
+    loader.setDRACOLoader(dracoLoader)
+
+    loader.load('/thr2pxl/media/models/ship.glb', (model: GLTF) => {
+      this.#model = model.scene.children[0] as THREE.Mesh
+      this.#initGpGpu()
+      this.#initPoints()
+    })
   }
 
   /**

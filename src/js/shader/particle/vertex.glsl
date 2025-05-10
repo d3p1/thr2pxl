@@ -6,6 +6,9 @@ uniform float uPointSize;
 uniform sampler2D uPointPositionTexture;
 
 attribute vec2 aUvPoint;
+attribute vec4 aColor;
+
+varying vec4 vColor;
 
 void main() {
     vec4 pointPosition = texture(uPointPositionTexture, aUvPoint);
@@ -17,4 +20,6 @@ void main() {
     gl_Position   = projectionPosition;
     gl_PointSize  = uPointSize;
     gl_PointSize *= -(1.0 / viewPosition.z);
+
+    vColor = aColor;
 }
