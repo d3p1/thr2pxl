@@ -1,3 +1,15 @@
+# [1.5.0](https://github.com/d3p1/thr2pxl/compare/v1.4.0...v1.5.0) (2025-05-11)
+
+
+### Bug Fixes
+
+* add tonemapping and colorspace fragment chunks [[#1](https://github.com/d3p1/thr2pxl/issues/1)] ([c1cf9a9](https://github.com/d3p1/thr2pxl/commit/c1cf9a91c5d3c999a02d16323f7f6780104da65e))
+
+
+### Features
+
+* add debug settings [[#1](https://github.com/d3p1/thr2pxl/issues/1)] ([84e7f1f](https://github.com/d3p1/thr2pxl/commit/84e7f1f6cd9595717c26498cb160607e8e9be010))
+
 # [1.4.0](https://github.com/d3p1/thr2pxl/compare/v1.3.0...v1.4.0) (2025-05-10)
 
 
