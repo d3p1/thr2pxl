@@ -13,9 +13,9 @@ uniform float     uParticleLifeDecay;
 #include ../utils/calcSimplexNoise4d.glsl
 
 void main() {
-    vec2  uv                       = gl_FragCoord.xy / resolution.xy;
-    vec4  position                 = texture(texturePoint, uv);
-    vec4  basePosition             = texture(uBasePosition, uv);
+    vec2  uv           = gl_FragCoord.xy / resolution.xy;
+    vec4  position     = texture(texturePoint, uv);
+    vec4  basePosition = texture(uBasePosition, uv);
 
     if (position.a >= 1.0) {
         position.a   = 0.0;
@@ -26,7 +26,7 @@ void main() {
             vec4(basePosition.xyz, uTime * uFlowFieldChangeFrequency)
         );
         strength = smoothstep(
-            1.0 - (uFlowFieldStrengthRatio) * 2.0,
+            1.0 - uFlowFieldStrengthRatio,
             1.0,
             strength
         );
