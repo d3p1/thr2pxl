@@ -1,3 +1,11 @@
+## [1.5.1](https://github.com/d3p1/thr2pxl/compare/v1.5.0...v1.5.1) (2025-05-26)
+
+
+### Bug Fixes
+
+* adjust how flow field strength works [[#1](https://github.com/d3p1/thr2pxl/issues/1)] ([36e01fc](https://github.com/d3p1/thr2pxl/commit/36e01fcb59b5c65973e2f22146910573178b6bab))
+* adjust tweak values [[#1](https://github.com/d3p1/thr2pxl/issues/1)] ([e3efb37](https://github.com/d3p1/thr2pxl/commit/e3efb3717dbd800867aad9dc3259ad41cc0dbc69))
+
 # [1.5.0](https://github.com/d3p1/thr2pxl/compare/v1.4.0...v1.5.0) (2025-05-11)
 
 
