@@ -14,7 +14,7 @@ import {
 } from 'three/examples/jsm/misc/GPUComputationRenderer.js'
 import vertexShader from './shader/particle/vertex.glsl'
 import fragmentShader from './shader/particle/fragment.glsl'
-import gpGpufragmentShader from './shader/gpgpu/fragment.glsl'
+import gpGpuFragmentShader from './shader/gpgpu/fragment.glsl'
 
 class Main {
   /**
@@ -255,7 +255,7 @@ class Main {
 
     this.#gpgpuPointVar = this.#gpgpu.addVariable(
       'texturePoint',
-      gpGpufragmentShader,
+      gpGpuFragmentShader,
       texture,
     )
     this.#gpgpu.setVariableDependencies(this.#gpgpuPointVar, [
