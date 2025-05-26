@@ -141,7 +141,7 @@ class Main {
 
     this.#debugger.addBinding(uFlowFieldChangeFrequency, 'value', {
       min: 0,
-      max: 5,
+      max: 0.25,
       step: 0.01,
       label: 'uFlowFieldChangeFrequency',
     })
@@ -268,9 +268,9 @@ class Main {
       texture,
     )
     this.#gpgpuPointVar.material.uniforms.uFlowFieldChangeFrequency =
-      new THREE.Uniform(0.5)
+      new THREE.Uniform(0.01)
     this.#gpgpuPointVar.material.uniforms.uFlowFieldStrength =
-      new THREE.Uniform(0.5)
+      new THREE.Uniform(3)
     this.#gpgpuPointVar.material.uniforms.uFlowFieldStrengthRatio =
       new THREE.Uniform(0.25)
     this.#gpgpuPointVar.material.uniforms.uParticleLifeDecay =
