@@ -26,7 +26,7 @@ void main() {
             vec4(basePosition.xyz, uTime * uFlowFieldChangeFrequency)
         );
         strength = smoothstep(
-            1.0 - uFlowFieldStrengthRatio,
+            1.0 - 2.0 * uFlowFieldStrengthRatio,
             1.0,
             strength
         );
