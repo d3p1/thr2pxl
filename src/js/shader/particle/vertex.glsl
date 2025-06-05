@@ -1,6 +1,10 @@
 /**
  * @description Vertex shader
  * @author      C. M. de Picciotto <d3p1@d3p1.dev> (https://d3p1.dev/)
+ * @todo        Because model is init in the origin of the scene,
+ *              local space (`position`) and world space (`modelPosition`)
+ *              are the same.
+ *              Analyze if it is not better/more intuitive to use `position`
  */
 uniform float     uPointSize;
 uniform sampler2D uPointPositionTexture;
