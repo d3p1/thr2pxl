@@ -1,3 +1,10 @@
+## [1.6.1](https://github.com/d3p1/thr2pxl/compare/v1.6.0...v1.6.1) (2025-06-05)
+
+
+### Bug Fixes
+
+* adjust cursor strength calculation [[#1](https://github.com/d3p1/thr2pxl/issues/1)] ([732a57c](https://github.com/d3p1/thr2pxl/commit/732a57cf9aafa41cd78612f164dfe0a9c3ae673d))
+
 # [1.6.0](https://github.com/d3p1/thr2pxl/compare/v1.5.1...v1.6.0) (2025-06-05)
 
 
