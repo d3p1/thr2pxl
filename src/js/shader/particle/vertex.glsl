@@ -4,6 +4,10 @@
  */
 uniform float     uPointSize;
 uniform sampler2D uPointPositionTexture;
+uniform vec3      uCursor;
+uniform float     uCursorStrength;
+uniform float     uCursorMinRad;
+uniform float     uCursorMaxRad;
 
 attribute vec2  aUvPoint;
 attribute vec4  aColor;
@@ -14,7 +18,22 @@ varying vec4 vColor;
 void main() {
     vec4 pointPosition = texture(uPointPositionTexture, aUvPoint);
 
-    vec4 modelPosition      = modelMatrix      * vec4(pointPosition.xyz, 1.0);
+    vec4 modelPosition = modelMatrix * vec4(pointPosition.xyz, 1.0);
+
+    vec3  displacementVector    = modelPosition.xyz - uCursor.xyz;
+    vec3  displacementDirection = normalize(displacementVector);
+    float displacementDistance  = length(displacementVector);
+          displacementDistance  = max(uCursorMinRad, displacementDistance);
+          displacementDistance  = min(uCursorMaxRad, displacementDistance);
+    float displacementStrength  = mix(
+        uCursorMinRad / uCursorMaxRad,
+        0.0,
+        displacementDistance / uCursorMaxRad
+    );
+    modelPosition.xyz += displacementDirection *
+                         displacementStrength  *
+                         uCursorStrength;
+
     vec4 viewPosition       = viewMatrix       * modelPosition;
     vec4 projectionPosition = projectionMatrix * viewPosition;
 

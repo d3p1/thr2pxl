@@ -38,9 +38,29 @@ class Main {
   #gpgpuPointVar: Variable
 
   /**
+   * @type {THREE.Raycaster}
+   */
+  #raycaster: THREE.Raycaster
+
+  /**
+   * @type {THREE.Vector2}
+   */
+  #raycasterCoord: THREE.Vector2
+
+  /**
+   * @type {THREE.Mesh}
+   */
+  #raycasterMesh: THREE.Mesh
+
+  /**
    * @type {OrbitControls}
    */
   #controls: OrbitControls
+
+  /**
+   * @type {GLTFLoader}
+   */
+  #gltfLoader: GLTFLoader
 
   /**
    * @type {THREE.WebGLRenderer}
@@ -71,6 +91,7 @@ class Main {
    * Constructor
    */
   constructor() {
+    this.#initGltfLoader()
     this.#initModel()
     this.#initTimer()
     this.#initScene()
@@ -112,6 +133,25 @@ class Main {
   }
 
   /**
+   * Raycast
+   *
+   * @returns {void}
+   * @todo    Improve `uCursor` default value
+   */
+  #raycast(): void {
+    if (this.#points && this.#raycasterMesh) {
+      this.#raycaster.setFromCamera(this.#raycasterCoord, this.#camera)
+      const intersections = this.#raycaster.intersectObject(this.#raycasterMesh)
+      const material = this.#points.material as THREE.ShaderMaterial
+      if (intersections.length) {
+        material.uniforms.uCursor.value.set(...intersections[0].point)
+      } else {
+        material.uniforms.uCursor.value.set(-99999, -99999, -99999)
+      }
+    }
+  }
+
+  /**
    * Resize renderer
    *
    * @returns {void}
@@ -138,6 +178,10 @@ class Main {
       uFlowFieldStrengthRatio,
       uParticleLifeDecay,
     } = this.#gpgpuPointVar.material.uniforms
+
+    const pointMaterial = this.#points.material as THREE.ShaderMaterial
+    const {uCursorMinRad, uCursorMaxRad, uCursorStrength} =
+      pointMaterial.uniforms
 
     this.#debugger.addBinding(uFlowFieldChangeFrequency, 'value', {
       min: 0,
@@ -166,12 +210,87 @@ class Main {
       step: 0.01,
       label: 'uParticleLifeDecay',
     })
+
+    this.#debugger.addBinding(uCursorMinRad, 'value', {
+      min: 0.01,
+      max: 10,
+      step: 0.01,
+      label: 'uCursorMinRad',
+    })
+
+    this.#debugger.addBinding(uCursorMaxRad, 'value', {
+      min: 0.02,
+      max: 20,
+      step: 0.01,
+      label: 'uCursorMaxRad',
+    })
+
+    this.#debugger.addBinding(uCursorStrength, 'value', {
+      min: 1,
+      max: 100,
+      step: 0.01,
+      label: 'uCursorStrength',
+    })
+  }
+
+  /**
+   * Init raycaster
+   *
+   * @returns {void}
+   */
+  #initRaycaster(): void {
+    this.#gltfLoader.load(
+      '/thr2pxl/media/models/ship.simplified.glb',
+      (model) => {
+        const mesh = model.scene.children[0] as THREE.Mesh
+
+        if (mesh) {
+          this.#raycasterMesh = new THREE.Mesh(
+            mesh.geometry.clone(),
+            new THREE.MeshBasicMaterial({wireframe: true}),
+          )
+
+          this.#raycasterMesh.position.set(
+            this.#points.position.x,
+            this.#points.position.y,
+            this.#points.position.z,
+          )
+          this.#raycasterMesh.visible = false
+          this.#scene.add(this.#raycasterMesh)
+        }
+      },
+    )
+
+    /**
+     * @todo Improve default value for `raycasterCoord`
+     */
+    this.#raycaster = new THREE.Raycaster()
+    this.#raycasterCoord = new THREE.Vector2(-2, -2)
+
+    this.#renderer.domElement.addEventListener('pointermove', (event) => {
+      this.#raycasterCoord.x =
+        (event.offsetX / this.#renderer.domElement.width - 0.5) * 2
+      this.#raycasterCoord.y =
+        -(event.offsetY / this.#renderer.domElement.height - 0.5) * 2
+
+      this.#raycast()
+    })
+
+    /**
+     * @todo Improve default value for `raycasterCoord`
+     */
+    this.#renderer.domElement.addEventListener('pointerout', () => {
+      this.#raycasterCoord.set(-2, -2)
+
+      this.#raycast()
+    })
   }
 
   /**
    * Init points
    *
    * @returns {void}
+   * @todo    Improve default value for `uCursor`
    */
   #initPoints(): void {
     this.#points = new THREE.Points(
@@ -182,6 +301,10 @@ class Main {
         uniforms: {
           uPointSize: new THREE.Uniform(5),
           uPointPositionTexture: new THREE.Uniform(null),
+          uCursor: new THREE.Uniform(new THREE.Vector3(-99999, -99999, -99999)),
+          uCursorStrength: new THREE.Uniform(5),
+          uCursorMinRad: new THREE.Uniform(0.1),
+          uCursorMaxRad: new THREE.Uniform(1),
         },
       }),
     )
@@ -354,17 +477,25 @@ class Main {
    * @returns {void}
    */
   #initModel(): void {
-    const loader = new GLTFLoader()
-    const dracoLoader = new DRACOLoader()
-    dracoLoader.setDecoderPath('/thr2pxl/js/draco/')
-    loader.setDRACOLoader(dracoLoader)
-
-    loader.load('/thr2pxl/media/models/ship.glb', (model: GLTF) => {
+    this.#gltfLoader.load('/thr2pxl/media/models/ship.glb', (model: GLTF) => {
       this.#model = model.scene.children[0] as THREE.Mesh
       this.#initGpGpu()
       this.#initPoints()
+      this.#initRaycaster()
       this.#initDebugger()
     })
+  }
+
+  /**
+   * Init GLTF loader
+   *
+   * @returns {void}
+   */
+  #initGltfLoader(): void {
+    this.#gltfLoader = new GLTFLoader()
+    const dracoLoader = new DRACOLoader()
+    dracoLoader.setDecoderPath('/thr2pxl/js/draco/')
+    this.#gltfLoader.setDRACOLoader(dracoLoader)
   }
 
   /**
