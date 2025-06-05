@@ -213,21 +213,21 @@ class Main {
 
     this.#debugger.addBinding(uCursorMinRad, 'value', {
       min: 0.01,
-      max: 10,
+      max: 5,
       step: 0.01,
       label: 'uCursorMinRad',
     })
 
     this.#debugger.addBinding(uCursorMaxRad, 'value', {
       min: 0.02,
-      max: 20,
+      max: 10,
       step: 0.01,
       label: 'uCursorMaxRad',
     })
 
     this.#debugger.addBinding(uCursorStrength, 'value', {
       min: 1,
-      max: 100,
+      max: 5,
       step: 0.01,
       label: 'uCursorStrength',
     })
@@ -302,9 +302,9 @@ class Main {
           uPointSize: new THREE.Uniform(5),
           uPointPositionTexture: new THREE.Uniform(null),
           uCursor: new THREE.Uniform(new THREE.Vector3(-99999, -99999, -99999)),
-          uCursorStrength: new THREE.Uniform(5),
-          uCursorMinRad: new THREE.Uniform(0.1),
-          uCursorMaxRad: new THREE.Uniform(1),
+          uCursorStrength: new THREE.Uniform(1),
+          uCursorMinRad: new THREE.Uniform(0.5),
+          uCursorMaxRad: new THREE.Uniform(2),
         },
       }),
     )

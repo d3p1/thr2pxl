@@ -30,7 +30,7 @@ void main() {
           displacementDistance  = max(uCursorMinRad, displacementDistance);
           displacementDistance  = min(uCursorMaxRad, displacementDistance);
     float displacementStrength  = mix(
-        uCursorMinRad / uCursorMaxRad,
+        1.0 / uCursorMinRad,
         0.0,
         displacementDistance / uCursorMaxRad
     );
