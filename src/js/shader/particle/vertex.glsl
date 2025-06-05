@@ -6,10 +6,13 @@
  *              are the same.
  *              Analyze if it is not better/more intuitive to use `position`
  */
+uniform float     uTime;
 uniform float     uPointSize;
 uniform sampler2D uPointPositionTexture;
 uniform vec3      uCursor;
 uniform float     uCursorStrength;
+uniform float     uCursorBreatheStrength;
+uniform float     uCursorBreatheFrequency;
 uniform float     uCursorMinRad;
 uniform float     uCursorMaxRad;
 
@@ -34,9 +37,13 @@ void main() {
         0.0,
         displacementDistance / uCursorMaxRad
     );
-    modelPosition.xyz += displacementDirection *
-                         displacementStrength  *
-                         uCursorStrength;
+    modelPosition.xyz += displacementDirection                *
+                         uCursorStrength                      *
+                         displacementStrength                 +
+                         displacementDirection                *
+                         sin(uTime * uCursorBreatheFrequency) *
+                         uCursorBreatheStrength               *
+                         displacementStrength;
 
     vec4 viewPosition       = viewMatrix       * modelPosition;
     vec4 projectionPosition = projectionMatrix * viewPosition;

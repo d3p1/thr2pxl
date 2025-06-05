@@ -125,6 +125,7 @@ class Main {
       ).texture
       const material = this.#points.material as THREE.ShaderMaterial
       material.uniforms.uPointPositionTexture.value = fbo
+      material.uniforms.uTime.value = this.#timer.getElapsed()
 
       this.#renderer.render(this.#scene, this.#camera)
     }
@@ -180,8 +181,13 @@ class Main {
     } = this.#gpgpuPointVar.material.uniforms
 
     const pointMaterial = this.#points.material as THREE.ShaderMaterial
-    const {uCursorMinRad, uCursorMaxRad, uCursorStrength} =
-      pointMaterial.uniforms
+    const {
+      uCursorMinRad,
+      uCursorMaxRad,
+      uCursorStrength,
+      uCursorBreatheStrength,
+      uCursorBreatheFrequency,
+    } = pointMaterial.uniforms
 
     this.#debugger.addBinding(uFlowFieldChangeFrequency, 'value', {
       min: 0,
@@ -226,10 +232,24 @@ class Main {
     })
 
     this.#debugger.addBinding(uCursorStrength, 'value', {
-      min: 1,
+      min: 0,
       max: 5,
       step: 0.01,
       label: 'uCursorStrength',
+    })
+
+    this.#debugger.addBinding(uCursorBreatheStrength, 'value', {
+      min: 0,
+      max: 2,
+      step: 0.01,
+      label: 'uCursorBreatheStrength',
+    })
+
+    this.#debugger.addBinding(uCursorBreatheFrequency, 'value', {
+      min: 0,
+      max: 5,
+      step: 0.01,
+      label: 'uCursorBreatheFrequency',
     })
   }
 
@@ -302,9 +322,12 @@ class Main {
           uPointSize: new THREE.Uniform(5),
           uPointPositionTexture: new THREE.Uniform(null),
           uCursor: new THREE.Uniform(new THREE.Vector3(-99999, -99999, -99999)),
-          uCursorStrength: new THREE.Uniform(1),
+          uCursorStrength: new THREE.Uniform(0.3),
+          uCursorBreatheStrength: new THREE.Uniform(0.2),
+          uCursorBreatheFrequency: new THREE.Uniform(1),
           uCursorMinRad: new THREE.Uniform(0.5),
           uCursorMaxRad: new THREE.Uniform(2),
+          uTime: new THREE.Uniform(null),
         },
       }),
     )
