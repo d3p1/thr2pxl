@@ -1,3 +1,16 @@
+# [1.6.0](https://github.com/d3p1/thr2pxl/compare/v1.5.1...v1.6.0) (2025-06-05)
+
+
+### Bug Fixes
+
+* solve base strength calculation [[#1](https://github.com/d3p1/thr2pxl/issues/1)] ([3d1217b](https://github.com/d3p1/thr2pxl/commit/3d1217ba50484779cdbe1810fa0fd0168a770df6))
+
+
+### Features
+
+* init raycaster effect [[#1](https://github.com/d3p1/thr2pxl/issues/1)] ([e636b77](https://github.com/d3p1/thr2pxl/commit/e636b77516ec104521ff591e4db34e6fce1d5cd8))
+* simplify ship model to test raycasting [[#1](https://github.com/d3p1/thr2pxl/issues/1)] ([232baf9](https://github.com/d3p1/thr2pxl/commit/232baf96fac2c29bfd15992546d10147b62645ac))
+
 ## [1.5.1](https://github.com/d3p1/thr2pxl/compare/v1.5.0...v1.5.1) (2025-05-26)
 
 

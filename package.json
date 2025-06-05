@@ -1,6 +1,6 @@
 {
   "name": "@d3p1/thr2pxl",
-  "version": "1.5.1",
+  "version": "1.6.0",
   "description": "A 3D (thr) model to pixel transformation with motion effect",
   "private": true,
   "type": "module",
