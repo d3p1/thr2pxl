@@ -1,3 +1,15 @@
+# [1.7.0](https://github.com/d3p1/thr2pxl/compare/v1.6.1...v1.7.0) (2025-06-06)
+
+
+### Bug Fixes
+
+* improve default value for flow field change frequency [[#1](https://github.com/d3p1/thr2pxl/issues/1)] ([d284bcc](https://github.com/d3p1/thr2pxl/commit/d284bcc9d8db158b295d88dfd44ed1a01cad9ef7))
+
+
+### Features
+
+* add breathe motion to cursor effect [[#1](https://github.com/d3p1/thr2pxl/issues/1)] ([e73bc54](https://github.com/d3p1/thr2pxl/commit/e73bc54a9251389aa258846c05a38bfbfdf59877))
+
 ## [1.6.1](https://github.com/d3p1/thr2pxl/compare/v1.6.0...v1.6.1) (2025-06-05)
 
 
