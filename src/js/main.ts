@@ -414,7 +414,7 @@ class Main {
       texture,
     )
     this.#gpgpuPointVar.material.uniforms.uFlowFieldChangeFrequency =
-      new THREE.Uniform(0.01)
+      new THREE.Uniform(0.1)
     this.#gpgpuPointVar.material.uniforms.uFlowFieldStrength =
       new THREE.Uniform(3)
     this.#gpgpuPointVar.material.uniforms.uFlowFieldStrengthRatio =
