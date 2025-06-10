@@ -1,6 +1,11 @@
 /**
  * @description Main
  * @author      C. M. de Picciotto <d3p1@d3p1.dev> (https://d3p1.dev/)
+ * @note        This class works as the entry point of the library.
+ *              It is like a dependency injection manager (DI container).
+ *              Also, it adds features not related to the app/effect itself,
+ *              like enable debug to tweak app/effect parameters or
+ *              effect parent container configuration
  */
 import {Pane} from 'tweakpane'
 import * as THREE from 'three'
@@ -12,6 +17,7 @@ import {
   GPUComputationRenderer,
   Variable,
 } from 'three/examples/jsm/misc/GPUComputationRenderer.js'
+import RendererManager from './core/lib/renderer-manager.js'
 import vertexShader from './shader/particle/vertex.glsl'
 import fragmentShader from './shader/particle/fragment.glsl'
 import gpGpuFragmentShader from './shader/gpgpu/fragment.glsl'
@@ -63,19 +69,9 @@ class Main {
   #gltfLoader: GLTFLoader
 
   /**
-   * @type {THREE.WebGLRenderer}
+   * @type {RendererManager}
    */
-  #renderer: THREE.WebGLRenderer
-
-  /**
-   * @type {THREE.PerspectiveCamera}
-   */
-  #camera: THREE.PerspectiveCamera
-
-  /**
-   * @type {THREE.Scene}
-   */
-  #scene: THREE.Scene
+  #rendererManager: RendererManager
 
   /**
    * @type {Pane}
@@ -94,8 +90,6 @@ class Main {
     this.#initGltfLoader()
     this.#initModel()
     this.#initTimer()
-    this.#initScene()
-    this.#initCamera()
     this.#initRenderer()
     this.#initControls()
 
@@ -127,7 +121,7 @@ class Main {
       material.uniforms.uPointPositionTexture.value = fbo
       material.uniforms.uTime.value = this.#timer.getElapsed()
 
-      this.#renderer.render(this.#scene, this.#camera)
+      this.#rendererManager.update()
     }
 
     requestAnimationFrame(this.#animate.bind(this))
@@ -141,7 +135,10 @@ class Main {
    */
   #raycast(): void {
     if (this.#points && this.#raycasterMesh) {
-      this.#raycaster.setFromCamera(this.#raycasterCoord, this.#camera)
+      this.#raycaster.setFromCamera(
+        this.#raycasterCoord,
+        this.#rendererManager.camera,
+      )
       const intersections = this.#raycaster.intersectObject(this.#raycasterMesh)
       const material = this.#points.material as THREE.ShaderMaterial
       if (intersections.length) {
@@ -150,19 +147,6 @@ class Main {
         material.uniforms.uCursor.value.set(-99999, -99999, -99999)
       }
     }
-  }
-
-  /**
-   * Resize renderer
-   *
-   * @returns {void}
-   */
-  #resizeRenderer(): void {
-    this.#camera.aspect = window.innerWidth / window.innerHeight
-    this.#camera.updateProjectionMatrix()
-
-    this.#renderer.setSize(window.innerWidth, window.innerHeight)
-    this.#renderer.setPixelRatio(this.#getPixelRatio())
   }
 
   /**
@@ -276,7 +260,7 @@ class Main {
             this.#points.position.z,
           )
           this.#raycasterMesh.visible = false
-          this.#scene.add(this.#raycasterMesh)
+          this.#rendererManager.scene.add(this.#raycasterMesh)
         }
       },
     )
@@ -287,23 +271,34 @@ class Main {
     this.#raycaster = new THREE.Raycaster()
     this.#raycasterCoord = new THREE.Vector2(-2, -2)
 
-    this.#renderer.domElement.addEventListener('pointermove', (event) => {
-      this.#raycasterCoord.x =
-        (event.offsetX / this.#renderer.domElement.width - 0.5) * 2
-      this.#raycasterCoord.y =
-        -(event.offsetY / this.#renderer.domElement.height - 0.5) * 2
+    this.#rendererManager.renderer.domElement.addEventListener(
+      'pointermove',
+      (event) => {
+        this.#raycasterCoord.x =
+          (event.offsetX / this.#rendererManager.renderer.domElement.width -
+            0.5) *
+          2
+        this.#raycasterCoord.y =
+          -(
+            event.offsetY / this.#rendererManager.renderer.domElement.height -
+            0.5
+          ) * 2
 
-      this.#raycast()
-    })
+        this.#raycast()
+      },
+    )
 
     /**
      * @todo Improve default value for `raycasterCoord`
      */
-    this.#renderer.domElement.addEventListener('pointerout', () => {
-      this.#raycasterCoord.set(-2, -2)
+    this.#rendererManager.renderer.domElement.addEventListener(
+      'pointerout',
+      () => {
+        this.#raycasterCoord.set(-2, -2)
 
-      this.#raycast()
-    })
+        this.#raycast()
+      },
+    )
   }
 
   /**
@@ -372,7 +367,7 @@ class Main {
       new THREE.BufferAttribute(randomSizeArray, 1),
     )
 
-    this.#scene.add(this.#points)
+    this.#rendererManager.scene.add(this.#points)
   }
 
   /**
@@ -384,7 +379,11 @@ class Main {
     const vertices = this.#model.geometry.attributes.position.count
     const size = Math.ceil(Math.sqrt(vertices))
 
-    this.#gpgpu = new GPUComputationRenderer(size, size, this.#renderer)
+    this.#gpgpu = new GPUComputationRenderer(
+      size,
+      size,
+      this.#rendererManager.renderer,
+    )
 
     const texture = this.#gpgpu.createTexture()
     for (let i = 0; i < vertices; i++) {
@@ -431,7 +430,10 @@ class Main {
    * @returns {void}
    */
   #initControls(): void {
-    this.#controls = new OrbitControls(this.#camera, this.#renderer.domElement)
+    this.#controls = new OrbitControls(
+      this.#rendererManager.camera,
+      this.#rendererManager.renderer.domElement,
+    )
     this.#controls.enableDamping = true
   }
 
@@ -441,48 +443,16 @@ class Main {
    * @returns {void}
    */
   #initRenderer(): void {
-    const canvas = document.createElement('canvas')
-    document.body.appendChild(canvas)
-
-    let antialias = false
-    const dpr = this.#getPixelRatio()
-    if (dpr < 2) {
-      antialias = true
-    }
-    this.#renderer = new THREE.WebGLRenderer({
-      canvas: canvas,
-      antialias: antialias,
-    })
-    this.#resizeRenderer()
-
-    window.addEventListener('resize', this.#resizeRenderer.bind(this))
-  }
-
-  /**
-   * Init camera
-   *
-   * @returns {void}
-   */
-  #initCamera(): void {
-    this.#camera = new THREE.PerspectiveCamera(
+    this.#rendererManager = new RendererManager(
       75,
-      window.innerWidth / window.innerHeight,
-      0.1,
-      1000,
+      window.innerWidth,
+      window.innerHeight,
     )
 
-    this.#camera.position.z = 10
-    this.#camera.position.x = 5
-    this.#scene.add(this.#camera)
-  }
+    this.#rendererManager.camera.position.z = 10
+    this.#rendererManager.camera.position.x = 5
 
-  /**
-   * Init scene
-   *
-   * @returns {void}
-   */
-  #initScene(): void {
-    this.#scene = new THREE.Scene()
+    document.body.appendChild(this.#rendererManager.renderer.domElement)
   }
 
   /**
@@ -519,15 +489,6 @@ class Main {
     const dracoLoader = new DRACOLoader()
     dracoLoader.setDecoderPath('/thr2pxl/js/draco/')
     this.#gltfLoader.setDRACOLoader(dracoLoader)
-  }
-
-  /**
-   * Get pixel ratio
-   *
-   * @returns {number}
-   */
-  #getPixelRatio(): number {
-    return Math.min(window.devicePixelRatio, 2)
   }
 }
 new Main()
