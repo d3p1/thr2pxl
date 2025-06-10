@@ -10,13 +10,12 @@
 import {Pane} from 'tweakpane'
 import * as THREE from 'three'
 import {Timer} from 'three/examples/jsm/misc/Timer.js'
-import {GLTF, GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js'
-import {DRACOLoader} from 'three/examples/jsm/loaders/DRACOLoader.js'
 import {
   GPUComputationRenderer,
   Variable,
 } from 'three/examples/jsm/misc/GPUComputationRenderer.js'
 import RendererManager from './core/lib/renderer-manager.js'
+import ModelLoaderManager from './core/lib/model-loader-manager.ts'
 import Pointer from './core/app/pointer.ts'
 import vertexShader from './shader/particle/vertex.glsl'
 import fragmentShader from './shader/particle/fragment.glsl'
@@ -31,7 +30,7 @@ class Main {
   /**
    * @type {THREE.Mesh}
    */
-  #model: THREE.Mesh
+  #mesh: THREE.Mesh
 
   /**
    * @type {GPUComputationRenderer}
@@ -54,9 +53,9 @@ class Main {
   #raycasterMesh: THREE.Mesh
 
   /**
-   * @type {GLTFLoader}
+   * @type {ModelLoaderManager}
    */
-  #gltfLoader: GLTFLoader
+  #modelLoaderManager: ModelLoaderManager
 
   /**
    * @type {RendererManager}
@@ -82,7 +81,7 @@ class Main {
    * Constructor
    */
   constructor() {
-    this.#initGltfLoader()
+    this.#initModelLoaderManager()
     this.#initModel()
     this.#initTimer()
     this.#initRenderer()
@@ -103,6 +102,7 @@ class Main {
     }
 
     this.#rendererManager.dispose()
+    this.#modelLoaderManager.dispose()
   }
 
   /**
@@ -239,29 +239,24 @@ class Main {
    * @returns {void}
    */
   #initRaycaster(): void {
-    this.#gltfLoader.load(
-      '/thr2pxl/media/models/ship.simplified.glb',
-      (model) => {
-        const mesh = model.scene.children[0] as THREE.Mesh
+    this.#modelLoaderManager
+      .loadMeshFromModel('/thr2pxl/media/models/ship.simplified.glb')
+      .then((mesh) => {
+        this.#raycasterMesh = new THREE.Mesh(
+          mesh.geometry.clone(),
+          new THREE.MeshBasicMaterial({wireframe: true}),
+        )
 
-        if (mesh) {
-          this.#raycasterMesh = new THREE.Mesh(
-            mesh.geometry.clone(),
-            new THREE.MeshBasicMaterial({wireframe: true}),
-          )
-
-          this.#raycasterMesh.position.set(
-            this.#points.position.x,
-            this.#points.position.y,
-            this.#points.position.z,
-          )
-          this.#raycasterMesh.visible = false
-          this.#rendererManager.scene.add(this.#raycasterMesh)
-        }
+        this.#raycasterMesh.position.set(
+          this.#points.position.x,
+          this.#points.position.y,
+          this.#points.position.z,
+        )
+        this.#raycasterMesh.visible = false
+        this.#rendererManager.scene.add(this.#raycasterMesh)
 
         this.#pointer = new Pointer(this.#raycasterMesh, this.#rendererManager)
-      },
-    )
+      })
   }
 
   /**
@@ -292,14 +287,14 @@ class Main {
 
     this.#points.geometry.setDrawRange(
       0,
-      this.#model.geometry.attributes.position.count,
+      this.#mesh.geometry.attributes.position.count,
     )
 
     /**
      * @todo Analyze if the uv should be generated using the points or the
      *       texture
      */
-    const vertices = this.#model.geometry.attributes.position.count
+    const vertices = this.#mesh.geometry.attributes.position.count
     const randomSizeArray = new Float32Array(vertices)
     const uvArray = new Float32Array(vertices * 2)
     const renderTarget = this.#gpgpu.getCurrentRenderTarget(this.#gpgpuPointVar)
@@ -323,7 +318,7 @@ class Main {
     )
     this.#points.geometry.setAttribute(
       'aColor',
-      this.#model.geometry.attributes.color,
+      this.#mesh.geometry.attributes.color,
     )
     this.#points.geometry.setAttribute(
       'aPointSize',
@@ -339,7 +334,7 @@ class Main {
    * @returns {void}
    */
   #initGpGpu(): void {
-    const vertices = this.#model.geometry.attributes.position.count
+    const vertices = this.#mesh.geometry.attributes.position.count
     const size = Math.ceil(Math.sqrt(vertices))
 
     this.#gpgpu = new GPUComputationRenderer(
@@ -353,7 +348,7 @@ class Main {
       const i3 = i * 3
       const i4 = i * 4
       const data = texture.image.data as Float32Array
-      const position = this.#model.geometry.attributes.position.array
+      const position = this.#mesh.geometry.attributes.position.array
 
       data[i4 + 0] = position[i3 + 0]
       data[i4 + 1] = position[i3 + 1]
@@ -420,25 +415,24 @@ class Main {
    * @returns {void}
    */
   #initModel(): void {
-    this.#gltfLoader.load('/thr2pxl/media/models/ship.glb', (model: GLTF) => {
-      this.#model = model.scene.children[0] as THREE.Mesh
-      this.#initGpGpu()
-      this.#initPoints()
-      this.#initRaycaster()
-      this.#initDebugger()
-    })
+    this.#modelLoaderManager
+      .loadMeshFromModel('/thr2pxl/media/models/ship.glb')
+      .then((mesh) => {
+        this.#mesh = mesh
+        this.#initGpGpu()
+        this.#initPoints()
+        this.#initRaycaster()
+        this.#initDebugger()
+      })
   }
 
   /**
-   * Init GLTF loader
+   * Init model loader manager
    *
    * @returns {void}
    */
-  #initGltfLoader(): void {
-    this.#gltfLoader = new GLTFLoader()
-    const dracoLoader = new DRACOLoader()
-    dracoLoader.setDecoderPath('/thr2pxl/js/draco/')
-    this.#gltfLoader.setDRACOLoader(dracoLoader)
+  #initModelLoaderManager(): void {
+    this.#modelLoaderManager = new ModelLoaderManager('/thr2pxl/js/draco/')
   }
 }
 new Main()
