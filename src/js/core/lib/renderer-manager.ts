@@ -86,6 +86,11 @@ export default class RendererManager {
   #cameraControls: OrbitControls | null = null
 
   /**
+   * @type {THREE.Vector3}
+   */
+  readonly #cameraPosition: THREE.Vector3
+
+  /**
    * @type {number}
    */
   readonly #cameraFov: number
@@ -108,21 +113,28 @@ export default class RendererManager {
   /**
    * Constructor
    *
-   * @param {number}  width
-   * @param {number}  height
-   * @param {boolean} isCameraControlsEnabled
-   * @param {number}  cameraFov
-   * @param {number}  cameraNear
-   * @param {number}  cameraFar
+   * @param {number}        width
+   * @param {number}        height
+   * @param {THREE.Vector3} cameraPosition
+   * @param {number}        cameraFov
+   * @param {number}        cameraNear
+   * @param {number}        cameraFar
+   * @param {boolean}       isCameraControlsEnabled
    */
   constructor(
     width: number,
     height: number,
-    isCameraControlsEnabled: boolean = true,
+    cameraPosition: THREE.Vector3 = new THREE.Vector3(
+      0,
+      0,
+      DEFAULT_CAMERA_FAR * 0.5,
+    ),
     cameraFov: number = DEFAULT_CAMERA_FOV,
     cameraNear: number = DEFAULT_CAMERA_NEAR,
     cameraFar: number = DEFAULT_CAMERA_FAR,
+    isCameraControlsEnabled: boolean = true,
   ) {
+    this.#cameraPosition = cameraPosition
     this.#cameraFov = cameraFov
     this.#cameraNear = cameraNear
     this.#cameraFar = cameraFar
@@ -189,12 +201,11 @@ export default class RendererManager {
    *
    * @returns {void}
    */
-  #resizeRenderer(): void {
-    this.#initDpr()
-
+  #handleResize(): void {
     this.#width = this.#windowAspect * window.innerWidth
     this.#height = this.#containerAspect * this.#width
 
+    this.#initDpr()
     this.renderer.setSize(this.#width, this.#height)
     this.renderer.setPixelRatio(this.#dpr)
 
@@ -221,23 +232,23 @@ export default class RendererManager {
    * @returns {void}
    */
   #initRenderer(): void {
-    const canvas = document.createElement('canvas')
-
+    this.#initDpr()
     let antialias = false
     if (this.#dpr <= 1) {
       antialias = true
     }
 
+    const canvas = document.createElement('canvas')
     this.renderer = new THREE.WebGLRenderer({
       antialias: antialias,
       canvas: canvas,
     })
     this.renderer.setClearAlpha(0)
 
-    this.#boundHandleResize = this.#resizeRenderer.bind(this)
+    this.#boundHandleResize = this.#handleResize.bind(this)
     window.addEventListener('resize', this.#boundHandleResize)
 
-    this.#resizeRenderer()
+    this.#handleResize()
   }
 
   /**
@@ -252,7 +263,7 @@ export default class RendererManager {
       this.#cameraNear,
       this.#cameraFar,
     )
-    this.camera.position.set(0, 0, this.camera.far - 0.1)
+    this.camera.position.copy(this.#cameraPosition)
     this.scene.add(this.camera)
   }
 
