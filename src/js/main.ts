@@ -78,6 +78,11 @@ class Main {
   #timer: Timer
 
   /**
+   * @type {number}
+   */
+  #requestAnimationId: number
+
+  /**
    * Constructor
    */
   constructor() {
@@ -87,6 +92,17 @@ class Main {
     this.#initRenderer()
 
     this.#animate()
+  }
+
+  /**
+   * Dispose
+   *
+   * @returns {void}
+   */
+  dispose(): void {
+    cancelAnimationFrame(this.#requestAnimationId)
+
+    this.#rendererManager.dispose()
   }
 
   /**
@@ -115,7 +131,7 @@ class Main {
       this.#rendererManager.update(this.#timer.getDelta())
     }
 
-    requestAnimationFrame(this.#animate.bind(this))
+    this.#requestAnimationId = requestAnimationFrame(this.#animate.bind(this))
   }
 
   /**
@@ -281,6 +297,7 @@ class Main {
 
     /**
      * @todo Improve default value for `raycasterCoord`
+     * @todo Check the difference between `pointerleave` and `pointerout`
      */
     this.#rendererManager.renderer.domElement.addEventListener(
       'pointerout',
@@ -412,7 +429,10 @@ class Main {
     this.#gpgpuPointVar.material.uniforms.uParticleLifeDecay =
       new THREE.Uniform(0.01)
 
-    this.#gpgpu.init()
+    const error = this.#gpgpu.init()
+    if (error !== null) {
+      console.error(error)
+    }
   }
 
   /**
@@ -424,10 +444,8 @@ class Main {
     this.#rendererManager = new RendererManager(
       window.innerWidth,
       window.innerHeight,
+      new THREE.Vector3(5, 0, 10),
     )
-
-    this.#rendererManager.camera.position.z = 10
-    this.#rendererManager.camera.position.x = 5
 
     document.body.appendChild(this.#rendererManager.renderer.domElement)
   }
