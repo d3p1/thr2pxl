@@ -17,6 +17,7 @@ import {
   Variable,
 } from 'three/examples/jsm/misc/GPUComputationRenderer.js'
 import RendererManager from './core/lib/renderer-manager.js'
+import Pointer from './core/app/pointer.ts'
 import vertexShader from './shader/particle/vertex.glsl'
 import fragmentShader from './shader/particle/fragment.glsl'
 import gpGpuFragmentShader from './shader/gpgpu/fragment.glsl'
@@ -43,14 +44,9 @@ class Main {
   #gpgpuPointVar: Variable
 
   /**
-   * @type {THREE.Raycaster}
+   * @type {Pointer | null}
    */
-  #raycaster: THREE.Raycaster
-
-  /**
-   * @type {THREE.Vector2}
-   */
-  #raycasterCoord: THREE.Vector2
+  #pointer: Pointer | null = null
 
   /**
    * @type {THREE.Mesh}
@@ -102,6 +98,10 @@ class Main {
   dispose(): void {
     cancelAnimationFrame(this.#requestAnimationId)
 
+    if (this.#pointer) {
+      this.#pointer.dispose()
+    }
+
     this.#rendererManager.dispose()
   }
 
@@ -128,32 +128,21 @@ class Main {
       material.uniforms.uPointPositionTexture.value = fbo
       material.uniforms.uTime.value = this.#timer.getElapsed()
 
+      if (this.#pointer && this.#pointer.intersections?.length) {
+        material.uniforms.uCursor.value.set(
+          ...this.#pointer.intersections[0].point,
+        )
+      } else {
+        /**
+         * @todo Improve `uCursor` default value
+         */
+        material.uniforms.uCursor.value.set(-99999, -99999, -99999)
+      }
+
       this.#rendererManager.update(this.#timer.getDelta())
     }
 
     this.#requestAnimationId = requestAnimationFrame(this.#animate.bind(this))
-  }
-
-  /**
-   * Raycast
-   *
-   * @returns {void}
-   * @todo    Improve `uCursor` default value
-   */
-  #raycast(): void {
-    if (this.#points && this.#raycasterMesh) {
-      this.#raycaster.setFromCamera(
-        this.#raycasterCoord,
-        this.#rendererManager.camera,
-      )
-      const intersections = this.#raycaster.intersectObject(this.#raycasterMesh)
-      const material = this.#points.material as THREE.ShaderMaterial
-      if (intersections.length) {
-        material.uniforms.uCursor.value.set(...intersections[0].point)
-      } else {
-        material.uniforms.uCursor.value.set(-99999, -99999, -99999)
-      }
-    }
   }
 
   /**
@@ -269,42 +258,8 @@ class Main {
           this.#raycasterMesh.visible = false
           this.#rendererManager.scene.add(this.#raycasterMesh)
         }
-      },
-    )
 
-    /**
-     * @todo Improve default value for `raycasterCoord`
-     */
-    this.#raycaster = new THREE.Raycaster()
-    this.#raycasterCoord = new THREE.Vector2(-2, -2)
-
-    this.#rendererManager.renderer.domElement.addEventListener(
-      'pointermove',
-      (event) => {
-        this.#raycasterCoord.x =
-          (event.offsetX / this.#rendererManager.renderer.domElement.width -
-            0.5) *
-          2
-        this.#raycasterCoord.y =
-          -(
-            event.offsetY / this.#rendererManager.renderer.domElement.height -
-            0.5
-          ) * 2
-
-        this.#raycast()
-      },
-    )
-
-    /**
-     * @todo Improve default value for `raycasterCoord`
-     * @todo Check the difference between `pointerleave` and `pointerout`
-     */
-    this.#rendererManager.renderer.domElement.addEventListener(
-      'pointerout',
-      () => {
-        this.#raycasterCoord.set(-2, -2)
-
-        this.#raycast()
+        this.#pointer = new Pointer(this.#raycasterMesh, this.#rendererManager)
       },
     )
   }
