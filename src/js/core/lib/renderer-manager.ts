@@ -5,21 +5,31 @@
  *              render logic
  */
 import * as THREE from 'three'
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js'
 
 /**
- * @const {number}
+ * @constant
+ * @type {number}
  */
-const MAX_DPR = 2
+const MAX_DPR: number = 2
 
 /**
- * @const {number}
+ * @constant
+ * @type {number}
  */
-const CAMERA_NEAR = 0.1
+const DEFAULT_CAMERA_FOV: number = 75
 
 /**
- * @const {number}
+ * @constant
+ * @type {number}
  */
-const CAMERA_FAR = 1000
+const DEFAULT_CAMERA_NEAR: number = 0.1
+
+/**
+ * @constant
+ * @type {number}
+ */
+const DEFAULT_CAMERA_FAR: number = 1000
 
 export default class RendererManager {
   /**
@@ -71,9 +81,24 @@ export default class RendererManager {
   #dpr: number
 
   /**
+   * @type {OrbitControls | null}
+   */
+  #cameraControls: OrbitControls | null = null
+
+  /**
    * @type {number}
    */
-  readonly #fov: number
+  readonly #cameraFov: number
+
+  /**
+   * @type {number}
+   */
+  readonly #cameraNear: number
+
+  /**
+   * @type {number}
+   */
+  readonly #cameraFar: number
 
   /**
    * @type {() => void}
@@ -83,36 +108,47 @@ export default class RendererManager {
   /**
    * Constructor
    *
-   * @param {number} fov
-   * @param {number} width
-   * @param {number} height
+   * @param {number}  width
+   * @param {number}  height
+   * @param {boolean} isCameraControlsEnabled
+   * @param {number}  cameraFov
+   * @param {number}  cameraNear
+   * @param {number}  cameraFar
    */
-  constructor(fov: number, width: number, height: number) {
-    this.#fov = fov
+  constructor(
+    width: number,
+    height: number,
+    isCameraControlsEnabled: boolean = true,
+    cameraFov: number = DEFAULT_CAMERA_FOV,
+    cameraNear: number = DEFAULT_CAMERA_NEAR,
+    cameraFar: number = DEFAULT_CAMERA_FAR,
+  ) {
+    this.#cameraFov = cameraFov
+    this.#cameraNear = cameraNear
+    this.#cameraFar = cameraFar
 
     this.#initSizes(width, height)
     this.#initScene()
     this.#initCamera()
     this.#initRenderer()
+
+    if (isCameraControlsEnabled) {
+      this.#initCameraControls()
+    }
   }
 
   /**
    * Update
    *
+   * @param   {number} deltaTime
    * @returns {void}
    */
-  update(): void {
-    this.renderer.render(this.scene, this.camera)
-  }
+  update(deltaTime: number): void {
+    if (this.#cameraControls) {
+      this.#cameraControls.update(deltaTime)
+    }
 
-  /**
-   * Compile shaders
-   *
-   * @returns {void}
-   * {@link   https://github.com/mrdoob/three.js/pull/10960}
-   */
-  compile(): void {
-    this.renderer.compile(this.scene, this.camera)
+    this.renderer.render(this.scene, this.camera)
   }
 
   /**
@@ -167,6 +203,19 @@ export default class RendererManager {
   }
 
   /**
+   * Init camera controls
+   *
+   * @returns {void}
+   */
+  #initCameraControls(): void {
+    this.#cameraControls = new OrbitControls(
+      this.camera,
+      this.renderer.domElement,
+    )
+    this.#cameraControls.enableDamping = true
+  }
+
+  /**
    * Init renderer
    *
    * @returns {void}
@@ -198,12 +247,12 @@ export default class RendererManager {
    */
   #initCamera(): void {
     this.camera = new THREE.PerspectiveCamera(
-      this.#fov,
+      this.#cameraFov,
       this.#width / this.#height,
-      CAMERA_NEAR,
-      CAMERA_FAR,
+      this.#cameraNear,
+      this.#cameraFar,
     )
-    this.camera.position.set(0, 0, this.camera.near - 0.1)
+    this.camera.position.set(0, 0, this.camera.far - 0.1)
     this.scene.add(this.camera)
   }
 

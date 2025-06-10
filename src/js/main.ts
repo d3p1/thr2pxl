@@ -12,7 +12,6 @@ import * as THREE from 'three'
 import {Timer} from 'three/examples/jsm/misc/Timer.js'
 import {GLTF, GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js'
 import {DRACOLoader} from 'three/examples/jsm/loaders/DRACOLoader.js'
-import {OrbitControls} from 'three/addons/controls/OrbitControls.js'
 import {
   GPUComputationRenderer,
   Variable,
@@ -59,11 +58,6 @@ class Main {
   #raycasterMesh: THREE.Mesh
 
   /**
-   * @type {OrbitControls}
-   */
-  #controls: OrbitControls
-
-  /**
    * @type {GLTFLoader}
    */
   #gltfLoader: GLTFLoader
@@ -91,7 +85,6 @@ class Main {
     this.#initModel()
     this.#initTimer()
     this.#initRenderer()
-    this.#initControls()
 
     this.#animate()
   }
@@ -106,8 +99,6 @@ class Main {
     if (this.#gpgpu) {
       this.#timer.update(t)
 
-      this.#controls.update()
-
       this.#gpgpuPointVar.material.uniforms.uTime.value =
         this.#timer.getElapsed()
       this.#gpgpuPointVar.material.uniforms.uDeltaTime.value =
@@ -121,7 +112,7 @@ class Main {
       material.uniforms.uPointPositionTexture.value = fbo
       material.uniforms.uTime.value = this.#timer.getElapsed()
 
-      this.#rendererManager.update()
+      this.#rendererManager.update(this.#timer.getDelta())
     }
 
     requestAnimationFrame(this.#animate.bind(this))
@@ -425,26 +416,12 @@ class Main {
   }
 
   /**
-   * Init controls
-   *
-   * @returns {void}
-   */
-  #initControls(): void {
-    this.#controls = new OrbitControls(
-      this.#rendererManager.camera,
-      this.#rendererManager.renderer.domElement,
-    )
-    this.#controls.enableDamping = true
-  }
-
-  /**
    * Init renderer
    *
    * @returns {void}
    */
   #initRenderer(): void {
     this.#rendererManager = new RendererManager(
-      75,
       window.innerWidth,
       window.innerHeight,
     )
