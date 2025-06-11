@@ -4,7 +4,7 @@
  */
 uniform float     uTime;
 uniform float     uDeltaTime;
-uniform sampler2D uBasePosition;
+uniform sampler2D uBaseDataTexture;
 uniform float     uFlowFieldChangeFrequency;
 uniform float     uFlowFieldStrength;
 uniform float     uFlowFieldStrengthRatio;
@@ -14,8 +14,8 @@ uniform float     uParticleLifeDecay;
 
 void main() {
     vec2  uv           = gl_FragCoord.xy / resolution.xy;
-    vec4  position     = texture(texturePoint, uv);
-    vec4  basePosition = texture(uBasePosition, uv);
+    vec4  position     = texture(textureData, uv);
+    vec4  basePosition = texture(uBaseDataTexture, uv);
 
     if (position.a >= 1.0) {
         position.a   = 0.0;

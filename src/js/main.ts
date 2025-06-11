@@ -4,18 +4,14 @@
  * @note        This class works as the entry point of the library.
  *              It is like a dependency injection manager (DI container).
  *              Also, it adds features not related to the app/effect itself,
- *              like enable debug to tweak app/effect parameters or
- *              effect parent container configuration
+ *              like enable debug to tweak app/effect parameters
  */
 import {Pane} from 'tweakpane'
 import * as THREE from 'three'
 import {Timer} from 'three/examples/jsm/misc/Timer.js'
-import {
-  GPUComputationRenderer,
-  Variable,
-} from 'three/examples/jsm/misc/GPUComputationRenderer.js'
 import RendererManager from './core/lib/renderer-manager.js'
 import ModelLoaderManager from './core/lib/model-loader-manager.ts'
+import GpGpuManager from './core/lib/gpgpu-manager.ts'
 import Pointer from './core/app/pointer.ts'
 import vertexShader from './shader/particle/vertex.glsl'
 import fragmentShader from './shader/particle/fragment.glsl'
@@ -33,24 +29,19 @@ class Main {
   #mesh: THREE.Mesh
 
   /**
-   * @type {GPUComputationRenderer}
-   */
-  #gpgpu: GPUComputationRenderer
-
-  /**
-   * @type {Variable}
-   */
-  #gpgpuPointVar: Variable
-
-  /**
    * @type {Pointer | null}
    */
   #pointer: Pointer | null = null
 
   /**
-   * @type {THREE.Mesh}
+   * @type {THREE.Mesh | null}
    */
-  #raycasterMesh: THREE.Mesh
+  #raycasterMesh: THREE.Mesh | null = null
+
+  /**
+   * @type {GpGpuManager | null}
+   */
+  #gpGpuManager: GpGpuManager | null = null
 
   /**
    * @type {ModelLoaderManager}
@@ -102,6 +93,7 @@ class Main {
     }
 
     this.#rendererManager.dispose()
+    this.#gpGpuManager?.dispose()
     this.#modelLoaderManager.dispose()
   }
 
@@ -112,23 +104,22 @@ class Main {
    * @returns {void}
    */
   #animate(t: number = 0): void {
-    if (this.#gpgpu) {
+    if (this.#gpGpuManager) {
       this.#timer.update(t)
 
-      this.#gpgpuPointVar.material.uniforms.uTime.value =
-        this.#timer.getElapsed()
-      this.#gpgpuPointVar.material.uniforms.uDeltaTime.value =
-        this.#timer.getDelta()
+      this.#gpGpuManager.update(
+        this.#timer.getDelta(),
+        this.#timer.getElapsed(),
+      )
 
-      this.#gpgpu.compute()
-      const fbo = this.#gpgpu.getCurrentRenderTarget(
-        this.#gpgpuPointVar,
-      ).texture
       const material = this.#points.material as THREE.ShaderMaterial
-      material.uniforms.uPointPositionTexture.value = fbo
+      const fbo = this.#gpGpuManager.getCurrentFbo()
+      if (fbo) {
+        material.uniforms.uPointPositionTexture.value = fbo.texture
+      }
       material.uniforms.uTime.value = this.#timer.getElapsed()
 
-      if (this.#pointer && this.#pointer.intersections?.length) {
+      if (this.#pointer && this.#pointer.intersections.length) {
         material.uniforms.uCursor.value.set(
           ...this.#pointer.intersections[0].point,
         )
@@ -153,12 +144,42 @@ class Main {
   #initDebugger(): void {
     this.#debugger = new Pane()
 
-    const {
-      uFlowFieldChangeFrequency,
-      uFlowFieldStrength,
-      uFlowFieldStrengthRatio,
-      uParticleLifeDecay,
-    } = this.#gpgpuPointVar.material.uniforms
+    if (this.#gpGpuManager) {
+      const {
+        uFlowFieldChangeFrequency,
+        uFlowFieldStrength,
+        uFlowFieldStrengthRatio,
+        uParticleLifeDecay,
+      } = this.#gpGpuManager.gpGpuVar.material.uniforms
+
+      this.#debugger.addBinding(uFlowFieldChangeFrequency, 'value', {
+        min: 0,
+        max: 0.25,
+        step: 0.01,
+        label: 'uFlowFieldChangeFrequency',
+      })
+
+      this.#debugger.addBinding(uFlowFieldStrength, 'value', {
+        min: 0,
+        max: 5,
+        step: 0.01,
+        label: 'uFlowFieldStrength',
+      })
+
+      this.#debugger.addBinding(uFlowFieldStrengthRatio, 'value', {
+        min: 0,
+        max: 1,
+        step: 0.01,
+        label: 'uFlowFieldStrengthRatio',
+      })
+
+      this.#debugger.addBinding(uParticleLifeDecay, 'value', {
+        min: 0,
+        max: 1,
+        step: 0.01,
+        label: 'uParticleLifeDecay',
+      })
+    }
 
     const pointMaterial = this.#points.material as THREE.ShaderMaterial
     const {
@@ -168,34 +189,6 @@ class Main {
       uCursorBreatheStrength,
       uCursorBreatheFrequency,
     } = pointMaterial.uniforms
-
-    this.#debugger.addBinding(uFlowFieldChangeFrequency, 'value', {
-      min: 0,
-      max: 0.25,
-      step: 0.01,
-      label: 'uFlowFieldChangeFrequency',
-    })
-
-    this.#debugger.addBinding(uFlowFieldStrength, 'value', {
-      min: 0,
-      max: 5,
-      step: 0.01,
-      label: 'uFlowFieldStrength',
-    })
-
-    this.#debugger.addBinding(uFlowFieldStrengthRatio, 'value', {
-      min: 0,
-      max: 1,
-      step: 0.01,
-      label: 'uFlowFieldStrengthRatio',
-    })
-
-    this.#debugger.addBinding(uParticleLifeDecay, 'value', {
-      min: 0,
-      max: 1,
-      step: 0.01,
-      label: 'uParticleLifeDecay',
-    })
 
     this.#debugger.addBinding(uCursorMinRad, 'value', {
       min: 0.01,
@@ -297,9 +290,9 @@ class Main {
     const vertices = this.#mesh.geometry.attributes.position.count
     const randomSizeArray = new Float32Array(vertices)
     const uvArray = new Float32Array(vertices * 2)
-    const renderTarget = this.#gpgpu.getCurrentRenderTarget(this.#gpgpuPointVar)
-    const width = renderTarget.width
-    const height = renderTarget.height
+    const renderTarget = this.#gpGpuManager?.getCurrentFbo()
+    const width = renderTarget?.width ?? 0
+    const height = renderTarget?.height ?? 0
 
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
@@ -335,54 +328,33 @@ class Main {
    */
   #initGpGpu(): void {
     const vertices = this.#mesh.geometry.attributes.position.count
-    const size = Math.ceil(Math.sqrt(vertices))
+    const position = this.#mesh.geometry.attributes.position.array
+    const texelData = new Float32Array(vertices * 4)
 
-    this.#gpgpu = new GPUComputationRenderer(
-      size,
-      size,
-      this.#rendererManager.renderer,
-    )
-
-    const texture = this.#gpgpu.createTexture()
     for (let i = 0; i < vertices; i++) {
       const i3 = i * 3
       const i4 = i * 4
-      const data = texture.image.data as Float32Array
-      const position = this.#mesh.geometry.attributes.position.array
 
-      data[i4 + 0] = position[i3 + 0]
-      data[i4 + 1] = position[i3 + 1]
-      data[i4 + 2] = position[i3 + 2]
-      data[i4 + 3] = Math.random()
+      texelData[i4 + 0] = position[i3 + 0]
+      texelData[i4 + 1] = position[i3 + 1]
+      texelData[i4 + 2] = position[i3 + 2]
+      texelData[i4 + 3] = Math.random()
     }
 
-    this.#gpgpuPointVar = this.#gpgpu.addVariable(
-      'texturePoint',
+    this.#gpGpuManager = new GpGpuManager(
+      texelData,
       gpGpuFragmentShader,
-      texture,
+      this.#rendererManager,
     )
-    this.#gpgpu.setVariableDependencies(this.#gpgpuPointVar, [
-      this.#gpgpuPointVar,
-    ])
 
-    this.#gpgpuPointVar.material.uniforms.uTime = new THREE.Uniform(0)
-    this.#gpgpuPointVar.material.uniforms.uDeltaTime = new THREE.Uniform(0)
-    this.#gpgpuPointVar.material.uniforms.uBasePosition = new THREE.Uniform(
-      texture,
-    )
-    this.#gpgpuPointVar.material.uniforms.uFlowFieldChangeFrequency =
+    this.#gpGpuManager.gpGpuVar.material.uniforms.uFlowFieldChangeFrequency =
       new THREE.Uniform(0.1)
-    this.#gpgpuPointVar.material.uniforms.uFlowFieldStrength =
+    this.#gpGpuManager.gpGpuVar.material.uniforms.uFlowFieldStrength =
       new THREE.Uniform(3)
-    this.#gpgpuPointVar.material.uniforms.uFlowFieldStrengthRatio =
+    this.#gpGpuManager.gpGpuVar.material.uniforms.uFlowFieldStrengthRatio =
       new THREE.Uniform(0.25)
-    this.#gpgpuPointVar.material.uniforms.uParticleLifeDecay =
+    this.#gpGpuManager.gpGpuVar.material.uniforms.uParticleLifeDecay =
       new THREE.Uniform(0.01)
-
-    const error = this.#gpgpu.init()
-    if (error !== null) {
-      console.error(error)
-    }
   }
 
   /**
