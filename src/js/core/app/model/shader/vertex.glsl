@@ -5,6 +5,7 @@
  *              local space (`position`) and world space (`modelPosition`)
  *              are the same.
  *              Analyze if it is not better/more intuitive to use `position`
+ * @todo        Move cursor related logic to other shader chunk
  */
 uniform float     uTime;
 uniform float     uPointSize;

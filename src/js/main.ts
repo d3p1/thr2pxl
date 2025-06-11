@@ -12,21 +12,20 @@ import {Timer} from 'three/examples/jsm/misc/Timer.js'
 import RendererManager from './core/lib/renderer-manager.js'
 import ModelLoaderManager from './core/lib/model-loader-manager.ts'
 import GpGpuManager from './core/lib/gpgpu-manager.ts'
+import Model from './core/app/model.ts'
 import Pointer from './core/app/pointer.ts'
-import vertexShader from './shader/particle/vertex.glsl'
-import fragmentShader from './shader/particle/fragment.glsl'
 import gpGpuFragmentShader from './shader/gpgpu/fragment.glsl'
 
 class Main {
   /**
-   * @type {THREE.Points}
-   */
-  #points: THREE.Points
-
-  /**
    * @type {THREE.Mesh}
    */
   #mesh: THREE.Mesh
+
+  /**
+   * @type {Model}
+   */
+  #model: Model
 
   /**
    * @type {Pointer | null}
@@ -92,6 +91,10 @@ class Main {
       this.#pointer.dispose()
     }
 
+    if (this.#model) {
+      this.#model.dispose()
+    }
+
     this.#rendererManager.dispose()
     this.#gpGpuManager?.dispose()
     this.#modelLoaderManager.dispose()
@@ -112,25 +115,28 @@ class Main {
         this.#timer.getElapsed(),
       )
 
-      const material = this.#points.material as THREE.ShaderMaterial
-      const fbo = this.#gpGpuManager.getCurrentFbo()
-      if (fbo) {
-        material.uniforms.uPointPositionTexture.value = fbo.texture
-      }
-      material.uniforms.uTime.value = this.#timer.getElapsed()
+      if (this.#model) {
+        this.#model.update(this.#timer.getElapsed())
 
-      if (this.#pointer && this.#pointer.intersections.length) {
-        material.uniforms.uCursor.value.set(
-          ...this.#pointer.intersections[0].point,
-        )
-      } else {
-        /**
-         * @todo Improve `uCursor` default value
-         */
-        material.uniforms.uCursor.value.set(-99999, -99999, -99999)
-      }
+        const material = this.#model.points.material as THREE.ShaderMaterial
+        const fbo = this.#gpGpuManager.getCurrentFbo()
+        if (fbo) {
+          material.uniforms.uPointPositionTexture.value = fbo.texture
+        }
 
-      this.#rendererManager.update(this.#timer.getDelta())
+        if (this.#pointer && this.#pointer.intersections.length) {
+          material.uniforms.uCursor.value.set(
+            ...this.#pointer.intersections[0].point,
+          )
+        } else {
+          /**
+           * @todo Improve `uCursor` default value
+           */
+          material.uniforms.uCursor.value.set(-99999, -99999, -99999)
+        }
+
+        this.#rendererManager.update(this.#timer.getDelta())
+      }
     }
 
     this.#requestAnimationId = requestAnimationFrame(this.#animate.bind(this))
@@ -181,7 +187,7 @@ class Main {
       })
     }
 
-    const pointMaterial = this.#points.material as THREE.ShaderMaterial
+    const pointMaterial = this.#model.points.material as THREE.ShaderMaterial
     const {
       uCursorMinRad,
       uCursorMaxRad,
@@ -241,9 +247,9 @@ class Main {
         )
 
         this.#raycasterMesh.position.set(
-          this.#points.position.x,
-          this.#points.position.y,
-          this.#points.position.z,
+          this.#model.points.position.x,
+          this.#model.points.position.y,
+          this.#model.points.position.z,
         )
         this.#raycasterMesh.visible = false
         this.#rendererManager.scene.add(this.#raycasterMesh)
@@ -256,69 +262,14 @@ class Main {
    * Init points
    *
    * @returns {void}
-   * @todo    Improve default value for `uCursor`
    */
   #initPoints(): void {
-    this.#points = new THREE.Points(
-      new THREE.BufferGeometry(),
-      new THREE.ShaderMaterial({
-        vertexShader: vertexShader,
-        fragmentShader: fragmentShader,
-        uniforms: {
-          uPointSize: new THREE.Uniform(5),
-          uPointPositionTexture: new THREE.Uniform(null),
-          uCursor: new THREE.Uniform(new THREE.Vector3(-99999, -99999, -99999)),
-          uCursorStrength: new THREE.Uniform(0.3),
-          uCursorBreatheStrength: new THREE.Uniform(0.2),
-          uCursorBreatheFrequency: new THREE.Uniform(1),
-          uCursorMinRad: new THREE.Uniform(0.5),
-          uCursorMaxRad: new THREE.Uniform(2),
-          uTime: new THREE.Uniform(null),
-        },
-      }),
-    )
+    const position = this.#mesh.geometry.attributes
+      .position as THREE.BufferAttribute
+    const color = this.#mesh.geometry.attributes.color as THREE.BufferAttribute
+    this.#model = new Model(position, color, this.#gpGpuManager as GpGpuManager)
 
-    this.#points.geometry.setDrawRange(
-      0,
-      this.#mesh.geometry.attributes.position.count,
-    )
-
-    /**
-     * @todo Analyze if the uv should be generated using the points or the
-     *       texture
-     */
-    const vertices = this.#mesh.geometry.attributes.position.count
-    const randomSizeArray = new Float32Array(vertices)
-    const uvArray = new Float32Array(vertices * 2)
-    const renderTarget = this.#gpGpuManager?.getCurrentFbo()
-    const width = renderTarget?.width ?? 0
-    const height = renderTarget?.height ?? 0
-
-    for (let y = 0; y < height; y++) {
-      for (let x = 0; x < width; x++) {
-        const i = y * width + x
-        const i2 = i * 2
-
-        uvArray[i2 + 0] = (x + 0.5) / width
-        uvArray[i2 + 1] = (y + 0.5) / height
-
-        randomSizeArray[i] = Math.random()
-      }
-    }
-    this.#points.geometry.setAttribute(
-      'aUvPoint',
-      new THREE.BufferAttribute(uvArray, 2),
-    )
-    this.#points.geometry.setAttribute(
-      'aColor',
-      this.#mesh.geometry.attributes.color,
-    )
-    this.#points.geometry.setAttribute(
-      'aPointSize',
-      new THREE.BufferAttribute(randomSizeArray, 1),
-    )
-
-    this.#rendererManager.scene.add(this.#points)
+    this.#rendererManager.scene.add(this.#model.points)
   }
 
   /**
