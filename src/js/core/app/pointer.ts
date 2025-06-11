@@ -1,8 +1,8 @@
 /**
  * @description Pointer
  * @author      C. M. de Picciotto <d3p1@d3p1.dev> (https://d3p1.dev/)
- * @note        The idea behind this class is to encapsulate and wrap the
- *              pointer logic
+ * @note        This class handles the logic related to the
+ *              pointer and its interactions
  */
 import * as THREE from 'three'
 import RendererManager from '../lib/renderer-manager.js'
