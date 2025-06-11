@@ -9,11 +9,10 @@ import RendererManager from '../lib/renderer-manager.js'
 
 export default class Pointer {
   /**
-   * @type {THREE.Intersection<THREE.Object3D<THREE.Object3DEventMap>>[] | null}
+   * @type {THREE.Intersection<THREE.Object3D<THREE.Object3DEventMap>>[]}
    */
-  intersections:
-    | THREE.Intersection<THREE.Object3D<THREE.Object3DEventMap>>[]
-    | null = null
+  intersections: THREE.Intersection<THREE.Object3D<THREE.Object3DEventMap>>[] =
+    []
 
   /**
    * @type {THREE.Mesh}
@@ -94,7 +93,7 @@ export default class Pointer {
    * @returns {void}
    */
   #handlePointerLeave(): void {
-    this.intersections = null
+    this.intersections = []
   }
 
   /**
