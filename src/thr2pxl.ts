@@ -74,6 +74,7 @@ export default class Thr2pxl {
    * @param {string}        raycasterModelUrl
    * @param {string | null} dracoUrl
    * @todo  Improve param names
+   * @todo  Add config object as param with related type
    */
   constructor(
     modelUrl: string,
