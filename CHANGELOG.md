@@ -1,3 +1,18 @@
+# [1.8.0](https://github.com/d3p1/thr2pxl/compare/v1.7.0...v1.8.0) (2025-06-12)
+
+
+### Bug Fixes
+
+* adjust dev page styles [[#1](https://github.com/d3p1/thr2pxl/issues/1)] ([38328c9](https://github.com/d3p1/thr2pxl/commit/38328c9636d0a0e6cffe71ad77354ead16db91d0))
+* adjust how pointer intersections are handled [[#1](https://github.com/d3p1/thr2pxl/issues/1)] ([77614fb](https://github.com/d3p1/thr2pxl/commit/77614fbd4f44be178ec968ff31bc493755a3e052))
+* adjust renderer antialias [[#1](https://github.com/d3p1/thr2pxl/issues/1)] ([4efd0f8](https://github.com/d3p1/thr2pxl/commit/4efd0f877d60b5640114b0a4aa43a0d5a7e6f1c8))
+
+
+### Features
+
+* add dispose method to main class [[#1](https://github.com/d3p1/thr2pxl/issues/1)] ([be66bdf](https://github.com/d3p1/thr2pxl/commit/be66bdf93be8f04260259ffb929c76e772119d4e))
+* init development page [[#1](https://github.com/d3p1/thr2pxl/issues/1)] ([2a524ea](https://github.com/d3p1/thr2pxl/commit/2a524ea14b136c7700ceca9314ae866438d7f198))
+
 # [1.7.0](https://github.com/d3p1/thr2pxl/compare/v1.6.1...v1.7.0) (2025-06-06)
 
 
