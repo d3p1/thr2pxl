@@ -4,6 +4,7 @@ import glsl from 'vite-plugin-glsl'
 export default {
   root: 'dev',
   base: '/thr2pxl/',
+  publicDir: '../dev/public',
   server: {
     host: true,
   },
