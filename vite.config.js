@@ -4,9 +4,7 @@ import glsl from 'vite-plugin-glsl'
 import dts from 'vite-plugin-dts'
 
 export default {
-  root: 'dev',
   base: '/thr2pxl/',
-  publicDir: '../dev/public',
   server: {
     host: true,
   },

@@ -15,11 +15,13 @@
 <body class="w-screen h-screen grid place-items-center bg-primary-800">
   <script type="module">
     import Thr2Pxl from '../src/thr2pxl.js'
+    import shipModel from './media/models/ship.glb'
+    import lowPolyShipModel from './media/models/ship.simplified.glb'
 
     new Thr2Pxl(
-      '/thr2pxl/media/models/ship.glb',
-      '/thr2pxl/media/models/ship.simplified.glb',
-      '/thr2pxl/js/draco/'
+      shipModel,
+      lowPolyShipModel,
+      './js/draco/'
     )
   </script>
 </body>
