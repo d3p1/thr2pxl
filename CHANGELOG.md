@@ -1,3 +1,10 @@
+## [1.8.1](https://github.com/d3p1/thr2pxl/compare/v1.8.0...v1.8.1) (2025-06-12)
+
+
+### Bug Fixes
+
+* adjust library entrypoint params [[#1](https://github.com/d3p1/thr2pxl/issues/1)] ([ec0c769](https://github.com/d3p1/thr2pxl/commit/ec0c769437a994165bce773c7f904b483b8773ad))
+
 # [1.8.0](https://github.com/d3p1/thr2pxl/compare/v1.7.0...v1.8.0) (2025-06-12)
 
 
