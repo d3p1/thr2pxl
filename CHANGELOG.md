@@ -1,3 +1,10 @@
+## [1.8.2](https://github.com/d3p1/thr2pxl/compare/v1.8.1...v1.8.2) (2025-06-12)
+
+
+### Bug Fixes
+
+* add publish config to package settings so module access is public [[#2](https://github.com/d3p1/thr2pxl/issues/2)] ([5136c7b](https://github.com/d3p1/thr2pxl/commit/5136c7b881e98c979910a78755daee580d0102c0))
+
 ## [1.8.1](https://github.com/d3p1/thr2pxl/compare/v1.8.0...v1.8.1) (2025-06-12)
 
 
