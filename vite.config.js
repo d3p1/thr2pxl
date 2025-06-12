@@ -2,6 +2,7 @@ import tailwindcss from '@tailwindcss/vite'
 import glsl from 'vite-plugin-glsl'
 
 export default {
+  root: 'dev',
   base: '/thr2pxl/',
   server: {
     host: true,
