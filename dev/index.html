@@ -13,6 +13,16 @@
   <title>thr2pxl</title>
 </head>
 <body class="w-screen h-screen grid place-items-center bg-primary-800">
-  <script type="module" src="./js/main.ts"></script>
+  <script type="module">
+    import Thr2Pxl from '../src/thr2pxl.js'
+    import shipModel from './media/models/ship.glb'
+    import lowPolyShipModel from './media/models/ship.simplified.glb'
+
+    new Thr2Pxl(
+      shipModel,
+      lowPolyShipModel,
+      './js/draco/'
+    )
+  </script>
 </body>
 </html>

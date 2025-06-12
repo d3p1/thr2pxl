@@ -14,9 +14,9 @@ import ModelLoaderManager from './core/lib/model-loader-manager.ts'
 import GpGpuManager from './core/lib/gpgpu-manager.ts'
 import Model from './core/app/model.ts'
 import Pointer from './core/app/pointer.ts'
-import gpGpuFragmentShader from './shader/gpgpu/fragment.glsl'
+import gpGpuFragmentShader from './core/app/shader/gpgpu/fragment.glsl'
 
-class Main {
+export default class Thr2pxl {
   /**
    * @type {THREE.Mesh}
    */
@@ -69,10 +69,19 @@ class Main {
 
   /**
    * Constructor
+   *
+   * @param {string}        modelUrl
+   * @param {string}        raycasterModelUrl
+   * @param {string | null} dracoUrl
+   * @todo  Improve param names
    */
-  constructor() {
-    this.#initModelLoaderManager()
-    this.#initModel()
+  constructor(
+    modelUrl: string,
+    raycasterModelUrl: string,
+    dracoUrl: string | null = null,
+  ) {
+    this.#initModelLoaderManager(dracoUrl)
+    this.#initModels(modelUrl, raycasterModelUrl)
     this.#initTimer()
     this.#initRenderer()
 
@@ -235,11 +244,13 @@ class Main {
   /**
    * Init raycaster
    *
+   * @param   {string} raycasterModelUrl
    * @returns {void}
+   * @todo    Improve param names
    */
-  #initRaycaster(): void {
+  #initRaycaster(raycasterModelUrl: string): void {
     this.#modelLoaderManager
-      .loadMeshFromModel('/thr2pxl/media/models/ship.simplified.glb')
+      .loadMeshFromModel(raycasterModelUrl)
       .then((mesh) => {
         this.#raycasterMesh = new THREE.Mesh(
           mesh.geometry.clone(),
@@ -333,29 +344,30 @@ class Main {
   }
 
   /**
-   * Init model
+   * Init models
    *
+   * @param   {string} modelUrl
+   * @param   {string} raycasterModelUrl
    * @returns {void}
+   * @todo    Improve param names
    */
-  #initModel(): void {
-    this.#modelLoaderManager
-      .loadMeshFromModel('/thr2pxl/media/models/ship.glb')
-      .then((mesh) => {
-        this.#mesh = mesh
-        this.#initGpGpu()
-        this.#initPoints()
-        this.#initRaycaster()
-        this.#initDebugger()
-      })
+  #initModels(modelUrl: string, raycasterModelUrl: string): void {
+    this.#modelLoaderManager.loadMeshFromModel(modelUrl).then((mesh) => {
+      this.#mesh = mesh
+      this.#initGpGpu()
+      this.#initPoints()
+      this.#initRaycaster(raycasterModelUrl)
+      this.#initDebugger()
+    })
   }
 
   /**
    * Init model loader manager
    *
+   * @param   {string | null} dracoUrl
    * @returns {void}
    */
-  #initModelLoaderManager(): void {
-    this.#modelLoaderManager = new ModelLoaderManager('/thr2pxl/js/draco/')
+  #initModelLoaderManager(dracoUrl: string | null): void {
+    this.#modelLoaderManager = new ModelLoaderManager(dracoUrl)
   }
 }
-new Main()

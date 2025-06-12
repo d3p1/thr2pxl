@@ -2,9 +2,7 @@ import tailwindcss from '@tailwindcss/vite'
 import glsl from 'vite-plugin-glsl'
 
 export default {
-  root: 'src/',
   base: '/thr2pxl/',
-  publicDir: '../public/',
   server: {
     host: true,
   },
@@ -13,5 +11,6 @@ export default {
     emptyOutDir: true,
     sourcemap: true,
   },
+  assetsInclude: ['**/*.gltf', '**/*.glb'],
   plugins: [tailwindcss(), glsl()],
 }
