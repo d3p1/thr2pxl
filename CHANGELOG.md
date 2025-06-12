@@ -1,3 +1,10 @@
+## [1.8.3](https://github.com/d3p1/thr2pxl/compare/v1.8.2...v1.8.3) (2025-06-12)
+
+
+### Bug Fixes
+
+* adjust build library config [[#2](https://github.com/d3p1/thr2pxl/issues/2)] ([36dc986](https://github.com/d3p1/thr2pxl/commit/36dc9864000ef0127a4d404a53944b8acf87554b))
+
 ## [1.8.2](https://github.com/d3p1/thr2pxl/compare/v1.8.1...v1.8.2) (2025-06-12)
 
 
