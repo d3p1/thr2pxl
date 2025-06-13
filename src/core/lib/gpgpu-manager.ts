@@ -8,7 +8,8 @@
  *              will be adapted for the requirements of this implementation
  *              (i.e.: this implementation only requires one GPGPU variable).
  *              In this way, it is possible to keep this class as simple as
- *              possible
+ *              possible.
+ *              For now, this class will work as a factory class
  */
 import * as THREE from 'three'
 import {
@@ -34,16 +35,6 @@ const TEXEL_GROUP_SIZE: number = 4
 
 export default class GpGpuManager {
   /**
-   * @type {GPUComputationRenderer}
-   */
-  gpGpu: GPUComputationRenderer
-
-  /**
-   * @type {Variable}
-   */
-  gpGpuVar: Variable
-
-  /**
    * @type {RendererManager}
    */
   #rendererManager: RendererManager
@@ -51,115 +42,85 @@ export default class GpGpuManager {
   /**
    * Constructor
    *
-   * @param {THREE.TypedArray} texelData
-   * @param {string}           fragmentShader
    * @param {RendererManager}  rendererManager
    */
-  constructor(
+  constructor(rendererManager: RendererManager) {
+    this.#rendererManager = rendererManager
+  }
+
+  /**
+   * Create GPGPU
+   *
+   * @param   {THREE.TypedArray} texelData
+   * @param   {string}           fragmentShader
+   * @returns {[GPUComputationRenderer, Variable]}
+   * @throws  Error
+   * @note    This method will work as a factory method that returns
+   *          instances to work with GPGPU
+   */
+  create(
     texelData: THREE.TypedArray,
     fragmentShader: string,
-    rendererManager: RendererManager,
-  ) {
-    this.#rendererManager = rendererManager
+  ): [GPUComputationRenderer, Variable] {
+    const gpGpu = this.#createGpGpuRenderer(texelData)
+    const gpGpuVar = this.#createGpGpuVar(gpGpu, texelData, fragmentShader)
 
-    this.#initGpGpu(texelData, fragmentShader)
-  }
-
-  /**
-   * Get current FBO
-   *
-   * @returns {THREE.WebGLRenderTarget<THREE.Texture> | null}
-   */
-  getCurrentFbo(): THREE.WebGLRenderTarget<THREE.Texture> | null {
-    return this.gpGpu.getCurrentRenderTarget(this.gpGpuVar)
-  }
-
-  /**
-   * Update
-   *
-   * @param   {number} deltaTime
-   * @param   {number} elapsedTime
-   * @returns {void}
-   */
-  update(deltaTime: number, elapsedTime: number): void {
-    this.gpGpuVar.material.uniforms.uDeltaTime.value = deltaTime
-    this.gpGpuVar.material.uniforms.uTime.value = elapsedTime
-    this.gpGpu.compute()
-  }
-
-  /**
-   * Dispose
-   *
-   * @returns {void}
-   */
-  dispose(): void {
-    this.gpGpu.dispose()
-  }
-
-  /**
-   * Init GPGPU
-   *
-   * @param   {THREE.TypedArray} texelData
-   * @param   {string}           fragmentShader
-   * @returns {void}
-   */
-  #initGpGpu(texelData: THREE.TypedArray, fragmentShader: string): void {
-    this.#initGpGpuRenderer(texelData)
-    this.#initGpGpuVar(texelData, fragmentShader)
-
-    const error = this.gpGpu.init()
+    const error = gpGpu.init()
     if (error) {
-      console.error(error)
+      throw new Error(error)
     }
+
+    return [gpGpu, gpGpuVar]
   }
 
   /**
-   * Init GPGPU variable
+   * Create GPGPU variable
    *
-   * @param   {THREE.TypedArray} texelData
-   * @param   {string}           fragmentShader
-   * @returns {void}
-   * @note    `texelData` must have 4 floats for each compute element
+   * @param   {GPUComputationRenderer} gpGpu
+   * @param   {THREE.TypedArray}       texelData
+   * @param   {string}                 fragmentShader
+   * @returns {Variable}
+   * @note    For now, `texelData` must have 4 floats for each compute element
    * @note    The variable fragment shader will have the texture uniform used
    *          as FBO (`textureData`), but also a uniform
-   *          that preserves the initial texture (`uBaseDataTexture`),
-   *          another one that has the delta time (`uDeltaTime`),
-   *          and a final one that has the elapsed time (`uTime`)
+   *          that preserves the initial texture (`uBaseDataTexture`)
    * @see     DEFAULT_VAR_NAME
    * @see     TEXEL_GROUP_SIZE
    */
-  #initGpGpuVar(texelData: THREE.TypedArray, fragmentShader: string): void {
-    const texture = this.gpGpu.createTexture()
+  #createGpGpuVar(
+    gpGpu: GPUComputationRenderer,
+    texelData: THREE.TypedArray,
+    fragmentShader: string,
+  ): Variable {
+    const texture = gpGpu.createTexture()
     const imageData = texture.image.data as THREE.TypedArray
     imageData.set(texelData)
 
-    this.gpGpuVar = this.gpGpu.addVariable(
+    const gpGpuVar = gpGpu.addVariable(
       DEFAULT_VAR_NAME,
       fragmentShader,
       texture,
     )
-    this.gpGpu.setVariableDependencies(this.gpGpuVar, [this.gpGpuVar])
+    gpGpu.setVariableDependencies(gpGpuVar, [gpGpuVar])
 
-    this.gpGpuVar.material.uniforms.uBaseDataTexture = new THREE.Uniform(
-      texture,
-    )
-    this.gpGpuVar.material.uniforms.uDeltaTime = new THREE.Uniform(0)
-    this.gpGpuVar.material.uniforms.uTime = new THREE.Uniform(0)
+    gpGpuVar.material.uniforms.uBaseDataTexture = new THREE.Uniform(texture)
+
+    return gpGpuVar
   }
 
   /**
-   * Init GPGPU renderer
+   * Create GPGPU renderer
    *
    * @param   {THREE.TypedArray} texelData
-   * @returns {void}
+   * @returns {GPUComputationRenderer}
    * @note    For now, `texelData` must have 4 floats for each compute element
    * @see     TEXEL_GROUP_SIZE
    */
-  #initGpGpuRenderer(texelData: THREE.TypedArray): void {
+  #createGpGpuRenderer(texelData: THREE.TypedArray): GPUComputationRenderer {
     const texelCount = texelData.length / TEXEL_GROUP_SIZE
     const size = Math.ceil(Math.sqrt(texelCount))
 
-    this.gpGpu = new GPUComputationRenderer(
+    return new GPUComputationRenderer(
       size,
       size,
       this.#rendererManager.renderer,

@@ -1,5 +1,5 @@
 /**
- * @description Fragment shader
+ * @description GPGPU shader
  * @author      C. M. de Picciotto <d3p1@d3p1.dev> (https://d3p1.dev/)
  */
 uniform float     uTime;
@@ -10,7 +10,7 @@ uniform float     uFlowFieldStrength;
 uniform float     uFlowFieldStrengthRatio;
 uniform float     uParticleLifeDecay;
 
-#include ../utils/calcSimplexNoise4d.glsl
+#include ./utils/calcSimplexNoise4d.glsl
 
 void main() {
     vec2  uv           = gl_FragCoord.xy / resolution.xy;
