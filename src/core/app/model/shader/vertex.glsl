@@ -12,8 +12,8 @@ uniform float     uPointSize;
 uniform sampler2D uPointPositionTexture;
 uniform vec3      uCursor;
 uniform float     uCursorStrength;
-uniform float     uCursorBreatheStrength;
-uniform float     uCursorBreatheFrequency;
+uniform float     uCursorPulseStrength;
+uniform float     uCursorPulseFrequency;
 uniform float     uCursorMinRad;
 uniform float     uCursorMaxRad;
 
@@ -38,12 +38,12 @@ void main() {
         0.0,
         displacementDistance / uCursorMaxRad
     );
-    modelPosition.xyz += displacementDirection                *
-                         uCursorStrength                      *
-                         displacementStrength                 +
-                         displacementDirection                *
-                         sin(uTime * uCursorBreatheFrequency) *
-                         uCursorBreatheStrength               *
+    modelPosition.xyz += displacementDirection              *
+                         uCursorStrength                    *
+                         displacementStrength               +
+                         displacementDirection              *
+                         sin(uTime * uCursorPulseFrequency) *
+                         uCursorPulseStrength               *
                          displacementStrength;
 
     vec4 viewPosition       = viewMatrix       * modelPosition;

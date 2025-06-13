@@ -202,8 +202,8 @@ export default class Thr2pxl {
       uCursorMinRad,
       uCursorMaxRad,
       uCursorStrength,
-      uCursorBreatheStrength,
-      uCursorBreatheFrequency,
+      uCursorPulseStrength,
+      uCursorPulseFrequency,
     } = pointMaterial.uniforms
 
     this.#debugger.addBinding(uCursorMinRad, 'value', {
@@ -227,18 +227,18 @@ export default class Thr2pxl {
       label: 'uCursorStrength',
     })
 
-    this.#debugger.addBinding(uCursorBreatheStrength, 'value', {
+    this.#debugger.addBinding(uCursorPulseStrength, 'value', {
       min: 0,
       max: 2,
       step: 0.01,
-      label: 'uCursorBreatheStrength',
+      label: 'uCursorPulseStrength',
     })
 
-    this.#debugger.addBinding(uCursorBreatheFrequency, 'value', {
+    this.#debugger.addBinding(uCursorPulseFrequency, 'value', {
       min: 0,
       max: 5,
       step: 0.01,
-      label: 'uCursorBreatheFrequency',
+      label: 'uCursorPulseFrequency',
     })
   }
 
