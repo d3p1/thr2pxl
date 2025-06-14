@@ -62,9 +62,7 @@ export default class Pointer extends AbstractEntity {
   }
 
   /**
-   * Dispose
-   *
-   * @returns {void}
+   * @inheritdoc
    */
   dispose(): void {
     this.#rendererManager.renderer.domElement.removeEventListener(
