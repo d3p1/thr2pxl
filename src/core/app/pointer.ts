@@ -5,19 +5,16 @@
  *              pointer and its interactions
  */
 import * as THREE from 'three'
+import ModelLoaderManager from '../lib/model-loader-manager.js'
 import RendererManager from '../lib/renderer-manager.js'
+import AbstractEntity from './abstract-entity.js'
 
-export default class Pointer {
+export default class Pointer extends AbstractEntity {
   /**
    * @type {THREE.Intersection<THREE.Object3D<THREE.Object3DEventMap>>[]}
    */
   intersections: THREE.Intersection<THREE.Object3D<THREE.Object3DEventMap>>[] =
     []
-
-  /**
-   * @type {THREE.Mesh}
-   */
-  readonly #raycasterMesh: THREE.Mesh
 
   /**
    * @type {THREE.Raycaster}
@@ -49,13 +46,18 @@ export default class Pointer {
   /**
    * Constructor
    *
-   * @param {THREE.Mesh}      raycasterMesh
-   * @param {RendererManager} rendererManager
+   * @param {RendererManager}    rendererManager
+   * @param {string}             modelUrl
+   * @param {ModelLoaderManager} modelLoaderManager
    */
-  constructor(raycasterMesh: THREE.Mesh, rendererManager: RendererManager) {
-    this.#raycasterMesh = raycasterMesh
-    this.#rendererManager = rendererManager
+  constructor(
+    rendererManager: RendererManager,
+    modelUrl: string,
+    modelLoaderManager: ModelLoaderManager,
+  ) {
+    super(modelUrl, modelLoaderManager)
 
+    this.#rendererManager = rendererManager
     this.#initRaycaster()
   }
 
@@ -73,6 +75,8 @@ export default class Pointer {
       'pointerleave',
       this.#boundHandlePointerLeave,
     )
+
+    super.dispose()
   }
 
   /**
@@ -82,9 +86,11 @@ export default class Pointer {
    * @returns {void}
    */
   #handlePointerMove(e: PointerEvent): void {
-    this.#processNdc(e.offsetX, e.offsetY)
-    this.#raycaster.setFromCamera(this.#ndc, this.#rendererManager.camera)
-    this.intersections = this.#raycaster.intersectObject(this.#raycasterMesh)
+    if (this.mesh) {
+      this.#processNdc(e.offsetX, e.offsetY)
+      this.#raycaster.setFromCamera(this.#ndc, this.#rendererManager.camera)
+      this.intersections = this.#raycaster.intersectObject(this.mesh)
+    }
   }
 
   /**

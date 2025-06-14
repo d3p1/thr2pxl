@@ -12,8 +12,8 @@ import {Timer} from 'three/addons/misc/Timer.js'
 import RendererManager from './core/lib/renderer-manager.js'
 import ModelLoaderManager from './core/lib/model-loader-manager.ts'
 import GpGpuManager from './core/lib/gpgpu-manager.ts'
-import Model from './core/app/model.ts'
 import Pointer from './core/app/pointer.ts'
+import Model from './core/app/model.ts'
 
 export default class Thr2pxl {
   /**
@@ -27,14 +27,9 @@ export default class Thr2pxl {
   #model: Model | null = null
 
   /**
-   * @type {Pointer | null}
+   * @type {Pointer}
    */
-  #pointer: Pointer | null = null
-
-  /**
-   * @type {THREE.Mesh | null}
-   */
-  #raycasterMesh: THREE.Mesh | null = null
+  #pointer: Pointer
 
   /**
    * @type {GpGpuManager}
@@ -42,14 +37,14 @@ export default class Thr2pxl {
   #gpGpuManager: GpGpuManager
 
   /**
-   * @type {ModelLoaderManager}
-   */
-  #modelLoaderManager: ModelLoaderManager
-
-  /**
    * @type {RendererManager}
    */
   #rendererManager: RendererManager
+
+  /**
+   * @type {ModelLoaderManager}
+   */
+  #modelLoaderManager: ModelLoaderManager
 
   /**
    * @type {Pane}
@@ -70,20 +65,19 @@ export default class Thr2pxl {
    * Constructor
    *
    * @param {string}        modelUrl
-   * @param {string}        raycasterModelUrl
+   * @param {string}        lowPolyModelUrl
    * @param {string | null} dracoUrl
-   * @todo  Improve param names
    * @todo  Add config object as param with related type
    */
   constructor(
     modelUrl: string,
-    raycasterModelUrl: string,
+    lowPolyModelUrl: string,
     dracoUrl: string | null = null,
   ) {
     this.#initModelLoaderManager(dracoUrl)
     this.#initRendererManager()
     this.#initGpGpuManager()
-    this.#initModels(modelUrl, raycasterModelUrl)
+    this.#initModels(modelUrl, lowPolyModelUrl)
     this.#initTimer()
 
     this.#animate()
@@ -232,31 +226,29 @@ export default class Thr2pxl {
   }
 
   /**
-   * Init raycaster
+   * Init pointer
    *
-   * @param   {string} raycasterModelUrl
+   * @param   {string} lowPolyUrl
    * @returns {void}
-   * @todo    Improve param names
    */
-  #initRaycaster(raycasterModelUrl: string): void {
-    this.#modelLoaderManager
-      .loadMeshFromModel(raycasterModelUrl)
-      .then((mesh) => {
-        this.#raycasterMesh = new THREE.Mesh(
-          mesh.geometry.clone(),
-          new THREE.MeshBasicMaterial({wireframe: true}),
-        )
+  #initPointer(lowPolyUrl: string): void {
+    this.#pointer = new Pointer(
+      this.#rendererManager,
+      lowPolyUrl,
+      this.#modelLoaderManager,
+    )
 
-        this.#raycasterMesh.position.set(
+    this.#pointer.load().then(() => {
+      if (this.#pointer.mesh) {
+        this.#pointer.mesh.position.set(
           this.#model?.points.position.x ?? 0,
           this.#model?.points.position.y ?? 0,
           this.#model?.points.position.z ?? 0,
         )
-        this.#raycasterMesh.visible = false
-        this.#rendererManager.scene.add(this.#raycasterMesh)
-
-        this.#pointer = new Pointer(this.#raycasterMesh, this.#rendererManager)
-      })
+        this.#pointer.mesh.visible = false
+        this.#rendererManager.scene.add(this.#pointer.mesh)
+      }
+    })
   }
 
   /**
@@ -286,15 +278,14 @@ export default class Thr2pxl {
    * Init models
    *
    * @param   {string} modelUrl
-   * @param   {string} raycasterModelUrl
+   * @param   {string} lowPolyModelUrl
    * @returns {void}
-   * @todo    Improve param names
    */
-  #initModels(modelUrl: string, raycasterModelUrl: string): void {
+  #initModels(modelUrl: string, lowPolyModelUrl: string): void {
     this.#modelLoaderManager.loadMeshFromModel(modelUrl).then((mesh) => {
       this.#mesh = mesh
       this.#initPoints()
-      this.#initRaycaster(raycasterModelUrl)
+      this.#initPointer(lowPolyModelUrl)
       this.#initDebugger()
     })
   }
