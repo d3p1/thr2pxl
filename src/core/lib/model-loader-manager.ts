@@ -41,16 +41,21 @@ export default class ModelLoaderManager {
    * Load mesh from the model
    *
    * @param   {string} url
-   * @returns {Promise<THREE.Mesh>}
+   * @returns {Promise<THREE.Mesh<THREE.BufferGeometry, THREE.Material>>}
    * @note    For now, this implementation only
    *          supports `.gltf` and `.glb` models,
    *          and they must have the desired mesh as a
    *          root mesh of the scene
    *          (`model.scene.children[0]`)
    */
-  async loadMeshFromModel(url: string): Promise<THREE.Mesh> {
+  async loadMeshFromModel(
+    url: string,
+  ): Promise<THREE.Mesh<THREE.BufferGeometry, THREE.Material>> {
     const model = await this.#loader.loadAsync(url)
-    return model.scene.children[0] as THREE.Mesh
+    return model.scene.children[0] as THREE.Mesh<
+      THREE.BufferGeometry,
+      THREE.Material
+    >
   }
 
   /**
