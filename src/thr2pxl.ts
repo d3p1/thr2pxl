@@ -6,25 +6,19 @@
  *              Also, it adds features not related to the app/effect itself,
  *              like enable debug to tweak app/effect parameters
  */
-import {Pane} from 'tweakpane'
 import * as THREE from 'three'
 import {Timer} from 'three/addons/misc/Timer.js'
-import RendererManager from './core/lib/renderer-manager.js'
 import ModelLoaderManager from './core/lib/model-loader-manager.js'
+import RendererManager from './core/lib/renderer-manager.js'
 import GpGpuManager from './core/lib/gpgpu-manager.js'
 import Pointer from './core/app/pointer.js'
 import Model from './core/app/model.js'
 
 export default class Thr2pxl {
   /**
-   * @type {THREE.Mesh | null}
-   */
-  #mesh: THREE.Mesh | null = null
-
-  /**
    * @type {Model}
    */
-  #model: Model | null = null
+  #model: Model
 
   /**
    * @type {Pointer}
@@ -45,11 +39,6 @@ export default class Thr2pxl {
    * @type {ModelLoaderManager}
    */
   #modelLoaderManager: ModelLoaderManager
-
-  /**
-   * @type {Pane}
-   */
-  #debugger: Pane
 
   /**
    * @type {Timer}
@@ -74,11 +63,12 @@ export default class Thr2pxl {
     lowPolyModelUrl: string,
     dracoUrl: string | null = null,
   ) {
+    this.#initTimer()
     this.#initModelLoaderManager(dracoUrl)
     this.#initRendererManager()
     this.#initGpGpuManager()
-    this.#initModels(modelUrl, lowPolyModelUrl)
-    this.#initTimer()
+    this.#initModel(modelUrl)
+    this.#initPointer(lowPolyModelUrl)
 
     this.#animate()
   }
@@ -112,117 +102,28 @@ export default class Thr2pxl {
   #animate(t: number = 0): void {
     this.#timer.update(t)
 
-    if (this.#model) {
+    if (this.#model.points) {
       this.#model.update(this.#timer.getDelta(), this.#timer.getElapsed())
 
-      const material = this.#model.points.material as THREE.ShaderMaterial
       if (this.#pointer && this.#pointer.intersections.length) {
-        material.uniforms.uCursor.value.set(
+        this.#model.points.material.uniforms.uCursor.value.set(
           ...this.#pointer.intersections[0].point,
         )
       } else {
         /**
          * @todo Improve `uCursor` default value
          */
-        material.uniforms.uCursor.value.set(-99999, -99999, -99999)
+        this.#model.points.material.uniforms.uCursor.value.set(
+          -99999,
+          -99999,
+          -99999,
+        )
       }
 
       this.#rendererManager.update(this.#timer.getDelta())
     }
 
     this.#requestAnimationId = requestAnimationFrame(this.#animate.bind(this))
-  }
-
-  /**
-   * Init debugger
-   *
-   * @returns {void}
-   */
-  #initDebugger(): void {
-    this.#debugger = new Pane()
-
-    // if (this.#gpGpuManager && this.#gpGpuVar) {
-    //   const {
-    //     uFlowFieldChangeFrequency,
-    //     uFlowFieldStrength,
-    //     uFlowFieldStrengthRatio,
-    //     uParticleLifeDecay,
-    //   } = this.#gpGpuVar.material.uniforms
-    //
-    //   this.#debugger.addBinding(uFlowFieldChangeFrequency, 'value', {
-    //     min: 0,
-    //     max: 0.25,
-    //     step: 0.01,
-    //     label: 'uFlowFieldChangeFrequency',
-    //   })
-    //
-    //   this.#debugger.addBinding(uFlowFieldStrength, 'value', {
-    //     min: 0,
-    //     max: 5,
-    //     step: 0.01,
-    //     label: 'uFlowFieldStrength',
-    //   })
-    //
-    //   this.#debugger.addBinding(uFlowFieldStrengthRatio, 'value', {
-    //     min: 0,
-    //     max: 1,
-    //     step: 0.01,
-    //     label: 'uFlowFieldStrengthRatio',
-    //   })
-    //
-    //   this.#debugger.addBinding(uParticleLifeDecay, 'value', {
-    //     min: 0,
-    //     max: 1,
-    //     step: 0.01,
-    //     label: 'uParticleLifeDecay',
-    //   })
-    // }
-
-    if (this.#model) {
-      const pointMaterial = this.#model.points.material as THREE.ShaderMaterial
-      const {
-        uCursorMinRad,
-        uCursorMaxRad,
-        uCursorStrength,
-        uCursorPulseStrength,
-        uCursorPulseFrequency,
-      } = pointMaterial.uniforms
-
-      this.#debugger.addBinding(uCursorMinRad, 'value', {
-        min: 0.01,
-        max: 5,
-        step: 0.01,
-        label: 'uCursorMinRad',
-      })
-
-      this.#debugger.addBinding(uCursorMaxRad, 'value', {
-        min: 0.02,
-        max: 10,
-        step: 0.01,
-        label: 'uCursorMaxRad',
-      })
-
-      this.#debugger.addBinding(uCursorStrength, 'value', {
-        min: 0,
-        max: 5,
-        step: 0.01,
-        label: 'uCursorStrength',
-      })
-
-      this.#debugger.addBinding(uCursorPulseStrength, 'value', {
-        min: 0,
-        max: 2,
-        step: 0.01,
-        label: 'uCursorPulseStrength',
-      })
-
-      this.#debugger.addBinding(uCursorPulseFrequency, 'value', {
-        min: 0,
-        max: 5,
-        step: 0.01,
-        label: 'uCursorPulseFrequency',
-      })
-    }
   }
 
   /**
@@ -238,13 +139,12 @@ export default class Thr2pxl {
       this.#modelLoaderManager,
     )
 
+    /**
+     * @todo Sync with model position
+     */
     this.#pointer.load().then(() => {
       if (this.#pointer.mesh) {
-        this.#pointer.mesh.position.set(
-          this.#model?.points.position.x ?? 0,
-          this.#model?.points.position.y ?? 0,
-          this.#model?.points.position.z ?? 0,
-        )
+        this.#pointer.mesh.position.set(0, 0, 0)
         this.#pointer.mesh.visible = false
         this.#rendererManager.scene.add(this.#pointer.mesh)
       }
@@ -252,41 +152,22 @@ export default class Thr2pxl {
   }
 
   /**
-   * Init points
-   *
-   * @returns {void}
-   */
-  #initPoints(): void {
-    const position = this.#mesh?.geometry.attributes
-      .position as THREE.BufferAttribute
-    const color = this.#mesh?.geometry.attributes.color as THREE.BufferAttribute
-    this.#model = new Model(position, color, this.#gpGpuManager as GpGpuManager)
-
-    this.#rendererManager.scene.add(this.#model.points)
-  }
-
-  /**
-   * Init timer
-   *
-   * @returns {void}
-   */
-  #initTimer(): void {
-    this.#timer = new Timer()
-  }
-
-  /**
-   * Init models
+   * Init model
    *
    * @param   {string} modelUrl
-   * @param   {string} lowPolyModelUrl
    * @returns {void}
    */
-  #initModels(modelUrl: string, lowPolyModelUrl: string): void {
-    this.#modelLoaderManager.loadMeshFromModel(modelUrl).then((mesh) => {
-      this.#mesh = mesh
-      this.#initPoints()
-      this.#initPointer(lowPolyModelUrl)
-      this.#initDebugger()
+  #initModel(modelUrl: string): void {
+    this.#model = new Model(
+      this.#gpGpuManager,
+      modelUrl,
+      this.#modelLoaderManager,
+    )
+    this.#model.load().then(() => {
+      if (this.#model.points) {
+        this.#model.points.position.set(0, 0, 0)
+        this.#rendererManager.scene.add(this.#model.points)
+      }
     })
   }
 
@@ -322,5 +203,14 @@ export default class Thr2pxl {
    */
   #initModelLoaderManager(dracoUrl: string | null): void {
     this.#modelLoaderManager = new ModelLoaderManager(dracoUrl)
+  }
+
+  /**
+   * Init timer
+   *
+   * @returns {void}
+   */
+  #initTimer(): void {
+    this.#timer = new Timer()
   }
 }

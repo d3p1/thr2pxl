@@ -9,17 +9,18 @@ import {
   GPUComputationRenderer,
   Variable,
 } from 'three/addons/misc/GPUComputationRenderer.js'
+import ModelLoaderManager from '../lib/model-loader-manager.js'
 import GpGpuManager from '../lib/gpgpu-manager.js'
 import AbstractEntity from './abstract-entity.js'
 import vertexShader from './model/shader/vertex.glsl'
 import fragmentShader from './model/shader/fragment.glsl'
 import gpGpuFragmentShader from './model/shader/gpgpu.glsl'
 
-export default class Model {
+export default class Model extends AbstractEntity {
   /**
-   * @type {THREE.Points}
+   * @type {THREE.Points<THREE.BufferGeometry, THREE.ShaderMaterial> | null}
    */
-  points: THREE.Points
+  points: THREE.Points<THREE.BufferGeometry, THREE.ShaderMaterial> | null = null
 
   /**
    * @type {Variable | null}
@@ -39,18 +40,18 @@ export default class Model {
   /**
    * Constructor
    *
-   * @param {THREE.BufferAttribute} position
-   * @param {THREE.BufferAttribute} color
-   * @param {GpGpuManager}          gpGpuManager
+   * @param {GpGpuManager}       gpGpuManager
+   * @param {string}             modelUrl
+   * @param {ModelLoaderManager} modelLoaderManager
    */
   constructor(
-    position: THREE.BufferAttribute,
-    color: THREE.BufferAttribute,
     gpGpuManager: GpGpuManager,
+    modelUrl: string,
+    modelLoaderManager: ModelLoaderManager,
   ) {
-    this.#gpGpuManager = gpGpuManager
+    super(modelUrl, modelLoaderManager)
 
-    this.#initPoints(position, color)
+    this.#gpGpuManager = gpGpuManager
   }
 
   /**
@@ -61,30 +62,42 @@ export default class Model {
    * @returns {void}
    */
   update(deltaTime: number, elapsedTime: number): void {
-    if (this.#gpGpu && this.#gpGpuVar) {
+    if (this.points && this.#gpGpu && this.#gpGpuVar) {
       this.#gpGpuVar.material.uniforms.uTime.value = elapsedTime
       this.#gpGpuVar.material.uniforms.uDeltaTime.value = deltaTime
       this.#gpGpu.compute()
 
-      const material = this.points.material as THREE.ShaderMaterial
       const fbo = this.#gpGpu.getCurrentRenderTarget(this.#gpGpuVar)
       if (fbo) {
-        material.uniforms.uPointPositionTexture.value = fbo.texture
+        this.points.material.uniforms.uPointPositionTexture.value = fbo.texture
       }
-      material.uniforms.uTime.value = elapsedTime
+      this.points.material.uniforms.uTime.value = elapsedTime
     }
   }
 
   /**
-   * Dispose
-   *
-   * @returns {void}
+   * @inheritdoc
+   */
+  async load(): Promise<void> {
+    await super.load()
+    const position = this.mesh?.geometry.getAttribute(
+      'position',
+    ) as THREE.BufferAttribute
+    const color = this.mesh?.geometry.getAttribute(
+      'color',
+    ) as THREE.BufferAttribute
+    this.#initPoints(position, color)
+  }
+
+  /**
+   * @inheritdoc
    */
   dispose(): void {
     this.#gpGpu?.dispose()
-    this.points.geometry.dispose()
-    const material = this.points.material as THREE.ShaderMaterial
-    material.dispose()
+    this.points?.geometry.dispose()
+    this.points?.material.dispose()
+
+    super.dispose()
   }
 
   /**
@@ -157,6 +170,10 @@ export default class Model {
         'aPointSize',
         new THREE.BufferAttribute(randomSizeArray, 1),
       )
+
+      this.mesh?.geometry.dispose()
+      this.mesh?.material.dispose()
+      this.mesh = null
     }
   }
 
