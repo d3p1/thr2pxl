@@ -106,14 +106,14 @@ export default class Thr2pxl {
       this.#model.update(this.#timer.getDelta(), this.#timer.getElapsed())
 
       if (this.#pointer && this.#pointer.intersections.length) {
-        this.#model.points.material.uniforms.uCursor.value.set(
+        this.#model.points.material.uniforms.uPointer.value.set(
           ...this.#pointer.intersections[0].point,
         )
       } else {
         /**
-         * @todo Improve `uCursor` default value
+         * @todo Improve `uPointer` default value
          */
-        this.#model.points.material.uniforms.uCursor.value.set(
+        this.#model.points.material.uniforms.uPointer.value.set(
           -99999,
           -99999,
           -99999,

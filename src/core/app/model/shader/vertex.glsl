@@ -10,12 +10,12 @@
 uniform float     uTime;
 uniform float     uPointSize;
 uniform sampler2D uPointPositionTexture;
-uniform vec3      uCursor;
-uniform float     uCursorStrength;
-uniform float     uCursorPulseStrength;
-uniform float     uCursorPulseFrequency;
-uniform float     uCursorMinRad;
-uniform float     uCursorMaxRad;
+uniform vec3      uPointer;
+uniform float     uPointerStrength;
+uniform float     uPointerPulseStrength;
+uniform float     uPointerPulseFrequency;
+uniform float     uPointerMinRad;
+uniform float     uPointerMaxRad;
 
 attribute vec2  aUvPoint;
 attribute vec4  aColor;
@@ -28,22 +28,22 @@ void main() {
 
     vec4 modelPosition = modelMatrix * vec4(pointPosition.xyz, 1.0);
 
-    vec3  displacementVector    = modelPosition.xyz - uCursor.xyz;
+    vec3  displacementVector    = modelPosition.xyz - uPointer.xyz;
     vec3  displacementDirection = normalize(displacementVector);
     float displacementDistance  = length(displacementVector);
-          displacementDistance  = max(uCursorMinRad, displacementDistance);
-          displacementDistance  = min(uCursorMaxRad, displacementDistance);
+          displacementDistance  = max(uPointerMinRad, displacementDistance);
+          displacementDistance  = min(uPointerMaxRad, displacementDistance);
     float displacementStrength  = mix(
-        1.0 / uCursorMinRad,
+        1.0 / uPointerMinRad,
         0.0,
-        displacementDistance / uCursorMaxRad
+        displacementDistance / uPointerMaxRad
     );
-    modelPosition.xyz += displacementDirection              *
-                         uCursorStrength                    *
-                         displacementStrength               +
-                         displacementDirection              *
-                         sin(uTime * uCursorPulseFrequency) *
-                         uCursorPulseStrength               *
+    modelPosition.xyz += displacementDirection               *
+                         uPointerStrength                    *
+                         displacementStrength                +
+                         displacementDirection               *
+                         sin(uTime * uPointerPulseFrequency) *
+                         uPointerPulseStrength               *
                          displacementStrength;
 
     vec4 viewPosition       = viewMatrix       * modelPosition;
