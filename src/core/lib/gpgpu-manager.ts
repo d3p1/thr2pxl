@@ -16,7 +16,7 @@ import {
   GPUComputationRenderer,
   Variable,
 } from 'three/addons/misc/GPUComputationRenderer.js'
-import RendererManager from './renderer-manager.ts'
+import RendererManager from './renderer-manager.js'
 
 /**
  * @constant

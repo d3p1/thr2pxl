@@ -9,7 +9,8 @@ import {
   GPUComputationRenderer,
   Variable,
 } from 'three/addons/misc/GPUComputationRenderer.js'
-import GpGpuManager from '../lib/gpgpu-manager.ts'
+import GpGpuManager from '../lib/gpgpu-manager.js'
+import AbstractEntity from './abstract-entity.js'
 import vertexShader from './model/shader/vertex.glsl'
 import fragmentShader from './model/shader/fragment.glsl'
 import gpGpuFragmentShader from './model/shader/gpgpu.glsl'

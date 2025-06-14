@@ -10,10 +10,10 @@ import {Pane} from 'tweakpane'
 import * as THREE from 'three'
 import {Timer} from 'three/addons/misc/Timer.js'
 import RendererManager from './core/lib/renderer-manager.js'
-import ModelLoaderManager from './core/lib/model-loader-manager.ts'
-import GpGpuManager from './core/lib/gpgpu-manager.ts'
-import Pointer from './core/app/pointer.ts'
-import Model from './core/app/model.ts'
+import ModelLoaderManager from './core/lib/model-loader-manager.js'
+import GpGpuManager from './core/lib/gpgpu-manager.js'
+import Pointer from './core/app/pointer.js'
+import Model from './core/app/model.js'
 
 export default class Thr2pxl {
   /**

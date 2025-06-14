@@ -6,7 +6,7 @@
  *              encapsulate the common behavior of these entities
  */
 import * as THREE from 'three'
-import ModelLoaderManager from '../lib/model-loader-manager.ts'
+import ModelLoaderManager from '../lib/model-loader-manager.js'
 
 export default abstract class AbstractEntity {
   /**
