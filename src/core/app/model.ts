@@ -71,7 +71,6 @@ export default class Model extends AbstractEntity {
       if (fbo) {
         this.points.material.uniforms.uPointPositionTexture.value = fbo.texture
       }
-      this.points.material.uniforms.uTime.value = elapsedTime
     }
   }
 
@@ -106,8 +105,6 @@ export default class Model extends AbstractEntity {
    * @param   {THREE.BufferAttribute} position
    * @param   {THREE.BufferAttribute} color
    * @returns {void}
-   * @todo    Improve default value for `uPointer`
-   * @todo    Move uniforms related to cursor/pointer to other class
    * @todo    Analyze if the uv should be generated using the points or the
    *          texture
    */
@@ -126,15 +123,6 @@ export default class Model extends AbstractEntity {
           uniforms: {
             uPointSize: new THREE.Uniform(5),
             uPointPositionTexture: new THREE.Uniform(null),
-            uPointer: new THREE.Uniform(
-              new THREE.Vector3(-99999, -99999, -99999),
-            ),
-            uPointerStrength: new THREE.Uniform(0.3),
-            uPointerPulseStrength: new THREE.Uniform(0.2),
-            uPointerPulseFrequency: new THREE.Uniform(1),
-            uPointerMinRad: new THREE.Uniform(0.5),
-            uPointerMaxRad: new THREE.Uniform(2),
-            uTime: new THREE.Uniform(0),
           },
         }),
       )

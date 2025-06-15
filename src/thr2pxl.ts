@@ -13,8 +13,14 @@ import RendererManager from './core/lib/renderer-manager.js'
 import GpGpuManager from './core/lib/gpgpu-manager.js'
 import Pointer from './core/app/pointer.js'
 import Model from './core/app/model.js'
+import App from './core/app.js'
 
 export default class Thr2pxl {
+  /**
+   * @type {App}
+   */
+  #app: App
+
   /**
    * @type {Model}
    */
@@ -69,6 +75,7 @@ export default class Thr2pxl {
     this.#initGpGpuManager()
     this.#initModel(modelUrl)
     this.#initPointer(lowPolyModelUrl)
+    this.#initApp()
 
     this.#animate()
   }
@@ -81,14 +88,8 @@ export default class Thr2pxl {
   dispose(): void {
     cancelAnimationFrame(this.#requestAnimationId)
 
-    if (this.#pointer) {
-      this.#pointer.dispose()
-    }
-
-    if (this.#model) {
-      this.#model.dispose()
-    }
-
+    this.#timer.dispose()
+    this.#app.dispose()
     this.#rendererManager.dispose()
     this.#modelLoaderManager.dispose()
   }
@@ -101,29 +102,18 @@ export default class Thr2pxl {
    */
   #animate(t: number = 0): void {
     this.#timer.update(t)
-
-    if (this.#model.points) {
-      this.#model.update(this.#timer.getDelta(), this.#timer.getElapsed())
-
-      if (this.#pointer && this.#pointer.intersections.length) {
-        this.#model.points.material.uniforms.uPointer.value.set(
-          ...this.#pointer.intersections[0].point,
-        )
-      } else {
-        /**
-         * @todo Improve `uPointer` default value
-         */
-        this.#model.points.material.uniforms.uPointer.value.set(
-          -99999,
-          -99999,
-          -99999,
-        )
-      }
-
-      this.#rendererManager.update(this.#timer.getDelta())
-    }
-
+    this.#app.update(this.#timer.getDelta(), this.#timer.getElapsed())
+    this.#rendererManager.update(this.#timer.getDelta())
     this.#requestAnimationId = requestAnimationFrame(this.#animate.bind(this))
+  }
+
+  /**
+   * Init app
+   *
+   * @returns {void}
+   */
+  #initApp(): void {
+    this.#app = new App(this.#model, this.#pointer, this.#rendererManager)
   }
 
   /**
@@ -138,17 +128,6 @@ export default class Thr2pxl {
       lowPolyUrl,
       this.#modelLoaderManager,
     )
-
-    /**
-     * @todo Sync with model position
-     */
-    this.#pointer.load().then(() => {
-      if (this.#pointer.mesh) {
-        this.#pointer.mesh.position.set(0, 0, 0)
-        this.#pointer.mesh.visible = false
-        this.#rendererManager.scene.add(this.#pointer.mesh)
-      }
-    })
   }
 
   /**
@@ -163,12 +142,6 @@ export default class Thr2pxl {
       modelUrl,
       this.#modelLoaderManager,
     )
-    this.#model.load().then(() => {
-      if (this.#model.points) {
-        this.#model.points.position.set(0, 0, 0)
-        this.#rendererManager.scene.add(this.#model.points)
-      }
-    })
   }
 
   /**
