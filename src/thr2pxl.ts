@@ -15,7 +15,7 @@ import FlowFieldManager from './core/app/model/gpgpu/flow-field-manager.js'
 import Model from './core/app/model.js'
 import Pointer from './core/app/pointer.js'
 import App from './core/app.js'
-import {Config} from './types'
+import {Config, ModelSourceCamera} from './types'
 
 export default class Thr2pxl {
   /**
@@ -102,10 +102,28 @@ export default class Thr2pxl {
   constructor(config: Config) {
     this.#initTimer()
     this.#initModelLoaderManager(config.loader?.dracoUrl ?? null)
-    this.#initRendererManager()
-    this.#initModel(config.model.src.highPoly)
+    this.#initRendererManager(
+      config.model.width,
+      config.model.height,
+      config.containerSelector ?? null,
+      config.model.camera ?? null,
+    )
+    this.#initModel(
+      config.model.src.highPoly,
+      config.model.point?.size,
+      config.model.point?.motion?.frequency,
+      config.model.point?.motion?.strength,
+      config.model.point?.motion?.strengthRatio,
+      config.model.point?.motion?.lifeDecay,
+    )
     this.#initPointer(config.model.src.lowPoly)
-    this.#initApp()
+    this.#initApp(
+      config.pointer?.strength,
+      config.pointer?.minRad,
+      config.pointer?.maxRad,
+      config.pointer?.pulseStrength,
+      config.pointer?.pulseFrequency,
+    )
 
     this.#render()
   }
@@ -140,10 +158,30 @@ export default class Thr2pxl {
   /**
    * Init app
    *
+   * @param   {number | undefined} pointerStrength
+   * @param   {number | undefined} pointerMinRad
+   * @param   {number | undefined} pointerMaxRad
+   * @param   {number | undefined} pointerPulseStrength
+   * @param   {number | undefined} pointerPulseFrequency
    * @returns {void}
    */
-  #initApp(): void {
-    this.#app = new App(this.#model, this.#pointer, this.#rendererManager)
+  #initApp(
+    pointerStrength: number | undefined,
+    pointerMinRad: number | undefined,
+    pointerMaxRad: number | undefined,
+    pointerPulseStrength: number | undefined,
+    pointerPulseFrequency: number | undefined,
+  ): void {
+    this.#app = new App(
+      this.#model,
+      this.#pointer,
+      this.#rendererManager,
+      pointerStrength,
+      pointerMinRad,
+      pointerMaxRad,
+      pointerPulseStrength,
+      pointerPulseFrequency,
+    )
   }
 
   /**
@@ -163,33 +201,88 @@ export default class Thr2pxl {
   /**
    * Init model
    *
-   * @param   {string} modelUrl
+   * @param   {string}             modelUrl
+   * @param   {number | undefined} pointSize
+   * @param   {number | undefined} flowFieldFrequency
+   * @param   {number | undefined} flowFieldStrength
+   * @param   {number | undefined} flowFieldStrengthRatio
+   * @param   {number | undefined} flowFieldPointLifeDecay
    * @returns {void}
    */
-  #initModel(modelUrl: string): void {
+  #initModel(
+    modelUrl: string,
+    pointSize: number | undefined,
+    flowFieldFrequency: number | undefined,
+    flowFieldStrength: number | undefined,
+    flowFieldStrengthRatio: number | undefined,
+    flowFieldPointLifeDecay: number | undefined,
+  ): void {
     const gpGpuManager = new GpGpuManager(this.#rendererManager)
-    const flowFieldManager = new FlowFieldManager(gpGpuManager)
+    const flowFieldManager = new FlowFieldManager(
+      gpGpuManager,
+      flowFieldFrequency,
+      flowFieldStrength,
+      flowFieldStrengthRatio,
+      flowFieldPointLifeDecay,
+    )
 
     this.#model = new Model(
       flowFieldManager,
       modelUrl,
       this.#modelLoaderManager,
+      pointSize,
     )
   }
 
   /**
    * Init renderer manager
    *
+   * @param   {number}        width
+   * @param   {number}        height
+   * @param   {string | null} containerSelector
+   * @param   {{
+   *            position?: {
+   *              x: number;
+   *              y: number;
+   *              z: number;
+   *            }
+   *            fov?: number;
+   *            near?: number;
+   *            far?: number;
+   *            isControlsEnabled?: boolean;
+   *          } | null} camera
    * @returns {void}
    */
-  #initRendererManager(): void {
+  #initRendererManager(
+    width: number,
+    height: number,
+    containerSelector: string | null,
+    camera: ModelSourceCamera | null,
+  ): void {
+    const cameraPosition = camera?.position
+      ? new THREE.Vector3(
+          camera.position.x,
+          camera.position.y,
+          camera.position.z,
+        )
+      : undefined
     this.#rendererManager = new RendererManager(
-      window.innerWidth,
-      window.innerHeight,
-      new THREE.Vector3(5, 0, 10),
+      width,
+      height,
+      cameraPosition,
+      camera?.fov,
+      camera?.near,
+      camera?.far,
+      camera?.isControlsEnabled,
     )
 
-    document.body.appendChild(this.#rendererManager.renderer.domElement)
+    if (containerSelector) {
+      document
+        .querySelector(containerSelector)
+        ?.appendChild(this.#rendererManager.renderer.domElement)
+    } else {
+      document.body.appendChild(this.#rendererManager.renderer.domElement)
+    }
   }
 
   /**

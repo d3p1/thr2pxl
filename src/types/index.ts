@@ -4,6 +4,21 @@
  */
 
 /**
+ * @note Camera configuration for the model that should be rendered
+ */
+export interface ModelSourceCamera {
+  position?: {
+    x: number
+    y: number
+    z: number
+  }
+  fov?: number
+  near?: number
+  far?: number
+  isControlsEnabled?: boolean
+}
+
+/**
  * @note Model that should be rendered
  */
 export interface ModelSource {
@@ -11,19 +26,9 @@ export interface ModelSource {
     highPoly: string
     lowPoly: string
   }
-  width?: number
-  height?: number
-  camera?: {
-    position?: {
-      x: number
-      y: number
-      z: number
-    }
-    fov?: number
-    near?: number
-    far?: number
-    isControlsEnabled?: boolean
-  }
+  width: number
+  height: number
+  camera?: ModelSourceCamera
   point?: {
     size?: number
     motion?: {
