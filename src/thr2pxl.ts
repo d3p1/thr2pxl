@@ -15,6 +15,7 @@ import FlowFieldManager from './core/app/model/gpgpu/flow-field-manager.js'
 import Model from './core/app/model.js'
 import Pointer from './core/app/pointer.js'
 import App from './core/app.js'
+import {Config} from './types'
 
 export default class Thr2pxl {
   /**
@@ -55,21 +56,55 @@ export default class Thr2pxl {
   /**
    * Constructor
    *
-   * @param {string}        modelUrl
-   * @param {string}        lowPolyModelUrl
-   * @param {string | null} dracoUrl
-   * @todo  Add config object as param with related type
+   * @param {{
+   *            containerSelector?: string;
+   *            model: {
+   *              src: {
+   *                highPoly: string;
+   *                lowPoly: string;
+   *              }
+   *              width: number;
+   *              height: number;
+   *              camera?: {
+   *                position?: {
+   *                  x: number;
+   *                  y: number;
+   *                  z: number;
+   *                }
+   *                fov?: number;
+   *                near?: number;
+   *                far?: number;
+   *                isControlsEnabled?: boolean;
+   *              }
+   *              point?: {
+   *                size?: number;
+   *                motion?: {
+   *                  frequency?: number;
+   *                  strength?: number;
+   *                  strengthRatio?: number;
+   *                  lifeDecay?: number;
+   *                }
+   *              }
+   *            }
+   *            loader?: {
+   *              dracoUrl?: string;
+   *            }
+   *            pointer?: {
+   *              strength?: number;
+   *              minRad?: number;
+   *              maxRad?: number;
+   *              pulseStrength?: number;
+   *              pulseFrequency?: number;
+   *            }
+   *            isDebugging?: boolean;
+   *        }} config
    */
-  constructor(
-    modelUrl: string,
-    lowPolyModelUrl: string,
-    dracoUrl: string | null = null,
-  ) {
+  constructor(config: Config) {
     this.#initTimer()
-    this.#initModelLoaderManager(dracoUrl)
+    this.#initModelLoaderManager(config.loader?.dracoUrl ?? null)
     this.#initRendererManager()
-    this.#initModel(modelUrl)
-    this.#initPointer(lowPolyModelUrl)
+    this.#initModel(config.model.src.highPoly)
+    this.#initPointer(config.model.src.lowPoly)
     this.#initApp()
 
     this.#render()

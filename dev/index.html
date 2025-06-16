@@ -18,11 +18,17 @@
     import shipModelUrl from './media/models/ship.glb'
     import lowPolyShipModelUrl from './media/models/ship.simplified.glb'
 
-    new Thr2Pxl(
-      shipModelUrl,
-      lowPolyShipModelUrl,
-      './js/draco/'
-    )
+    new Thr2Pxl({
+      model: {
+        src: {
+          highPoly: shipModelUrl,
+          lowPoly: lowPolyShipModelUrl
+        }
+      },
+      loader: {
+        dracoUrl: './js/draco/'
+      }
+    })
   </script>
 </body>
 </html>
