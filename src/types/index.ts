@@ -56,5 +56,4 @@ export interface Config {
     pulseStrength?: number
     pulseFrequency?: number
   }
-  isDebugging?: boolean
 }

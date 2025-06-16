@@ -50,6 +50,23 @@ export default class Thr2pxl {
   #requestAnimationId: number
 
   /**
+   * @type {boolean}
+   */
+  #isDebugging: boolean
+
+  /**
+   * @type {boolean}
+   * @note By default, debug is not ready.
+   *       That means that debug settings were not already created
+   */
+  #isDebugReady: boolean = false
+
+  /**
+   * @type {Function}
+   */
+  #boundHandleDebug: (e: KeyboardEvent) => void
+
+  /**
    * Constructor
    *
    * @param {{
@@ -91,8 +108,7 @@ export default class Thr2pxl {
    *              maxRad        ?: number;
    *              pulseStrength ?: number;
    *              pulseFrequency?: number;
-   *            };
-   *            isDebugging?: boolean;
+   *            }
    *        }} config
    */
   constructor(config: Config) {
@@ -124,15 +140,6 @@ export default class Thr2pxl {
   }
 
   /**
-   * Enable debug mode
-   *
-   * @returns {void}
-   */
-  debug(): void {
-    this.#app.debug()
-  }
-
-  /**
    * Dispose
    *
    * @returns {void}
@@ -144,7 +151,8 @@ export default class Thr2pxl {
     this.#app.dispose()
     this.#rendererManager.dispose()
     this.#modelLoaderManager.dispose()
-    this.#debugManager.dispose()
+
+    this.#disposeDebugManager()
   }
 
   /**
@@ -158,6 +166,44 @@ export default class Thr2pxl {
     this.#app.update(this.#timer.getDelta(), this.#timer.getElapsed())
     this.#rendererManager.update(this.#timer.getDelta())
     this.#requestAnimationId = requestAnimationFrame(this.#render.bind(this))
+  }
+
+  /**
+   * Handle debug
+   *
+   * @param   {KeyboardEvent} e
+   * @returns {void}
+   */
+  #handleDebug(e: KeyboardEvent): void {
+    if (e.key === 'd') {
+      this.#isDebugging = !this.#isDebugging
+
+      if (this.#isDebugging) {
+        /**
+         * @note App debug settings should be enabled only once,
+         *       to avoid duplicating them on every debug enable
+         *       event
+         */
+        if (!this.#isDebugReady) {
+          this.#app.debug()
+          this.#isDebugReady = true
+        }
+
+        this.#debugManager.enable()
+      } else {
+        this.#debugManager.disable()
+      }
+    }
+  }
+
+  /**
+   * Dispose debug manager
+   *
+   * @returns {void}
+   */
+  #disposeDebugManager(): void {
+    window.removeEventListener('keydown', this.#boundHandleDebug)
+    this.#debugManager.dispose()
   }
 
   /**
@@ -341,8 +387,14 @@ export default class Thr2pxl {
    * Init debug manager
    *
    * @returns {void}
+   * @note    Disable debug feature by default
    */
   #initDebugManager(): void {
     this.#debugManager = new DebugManager()
+    this.#debugManager.disable()
+    this.#isDebugging = false
+
+    this.#boundHandleDebug = this.#handleDebug.bind(this)
+    document.addEventListener('keydown', this.#boundHandleDebug)
   }
 }
