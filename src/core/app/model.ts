@@ -110,7 +110,7 @@ export default class Model extends AbstractEntity {
         this.points.material.uniforms.uPointSize,
         'value',
         'size',
-        {min: 0.1, max: 5, step: 0.1},
+        {min: 0.1, max: 50, step: 0.1},
         pointFolder,
       )
     }
