@@ -10,9 +10,9 @@
 uniform float uTime;
 uniform vec3  uPointer;
 uniform float uPointerStrength;
-uniform float uPointerPulseStrength;
-uniform float uPointerPulseFrequency;
 uniform float uPointerMinRad;
 uniform float uPointerMaxRad;
+uniform float uPointerPulseStrength;
+uniform float uPointerPulseFrequency;
 
 varying vec4 vColor;

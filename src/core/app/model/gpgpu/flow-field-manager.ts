@@ -12,6 +12,30 @@ import {
 import GpGpuManager from '../../../lib/gpgpu-manager.js'
 import fragmentShader from './shader/fragment.glsl'
 
+/**
+ * @constant
+ * @type {number}
+ */
+const DEFAULT_FREQUENCY: number = 0.1
+
+/**
+ * @constant
+ * @type {number}
+ */
+const DEFAULT_STRENGTH: number = 3
+
+/**
+ * @constant
+ * @type {number}
+ */
+const DEFAULT_STRENGTH_RATIO: number = 0.25
+
+/**
+ * @constant
+ * @type {number}
+ */
+const DEFAULT_POINT_LIFE_DECAY: number = 0.01
+
 export default class FlowFieldManager {
   /**
    * @type {Float32Array}
@@ -41,12 +65,46 @@ export default class FlowFieldManager {
   #gpGpuManager: GpGpuManager
 
   /**
+   * @type {number}
+   */
+  readonly #frequency: number
+
+  /**
+   * @type {number}
+   */
+  readonly #strength: number
+
+  /**
+   * @type {number}
+   */
+  readonly #strengthRatio: number
+
+  /**
+   * @type {number}
+   */
+  readonly #pointLifeDecay: number
+
+  /**
    * Constructor
    *
    * @param {GpGpuManager} gpGpuManager
+   * @param {number}       frequency
+   * @param {number}       strength
+   * @param {number}       strengthRatio
+   * @param {number}       pointLifeDecay
    */
-  constructor(gpGpuManager: GpGpuManager) {
+  constructor(
+    gpGpuManager: GpGpuManager,
+    frequency: number = DEFAULT_FREQUENCY,
+    strength: number = DEFAULT_STRENGTH,
+    strengthRatio: number = DEFAULT_STRENGTH_RATIO,
+    pointLifeDecay: number = DEFAULT_POINT_LIFE_DECAY,
+  ) {
     this.#gpGpuManager = gpGpuManager
+    this.#frequency = frequency
+    this.#strength = strength
+    this.#strengthRatio = strengthRatio
+    this.#pointLifeDecay = pointLifeDecay
   }
 
   /**
@@ -102,13 +160,16 @@ export default class FlowFieldManager {
 
     this.#gpGpuVar.material.uniforms.uTime = new THREE.Uniform(0)
     this.#gpGpuVar.material.uniforms.uDeltaTime = new THREE.Uniform(0)
-    this.#gpGpuVar.material.uniforms.uFlowFieldChangeFrequency =
-      new THREE.Uniform(0.1)
-    this.#gpGpuVar.material.uniforms.uFlowFieldStrength = new THREE.Uniform(3)
+    this.#gpGpuVar.material.uniforms.uFlowFieldFrequency = new THREE.Uniform(
+      this.#frequency,
+    )
+    this.#gpGpuVar.material.uniforms.uFlowFieldStrength = new THREE.Uniform(
+      this.#strength,
+    )
     this.#gpGpuVar.material.uniforms.uFlowFieldStrengthRatio =
-      new THREE.Uniform(0.25)
-    this.#gpGpuVar.material.uniforms.uParticleLifeDecay = new THREE.Uniform(
-      0.01,
+      new THREE.Uniform(this.#strengthRatio)
+    this.#gpGpuVar.material.uniforms.uPointLifeDecay = new THREE.Uniform(
+      this.#pointLifeDecay,
     )
   }
 

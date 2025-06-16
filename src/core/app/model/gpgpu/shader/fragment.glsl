@@ -5,10 +5,10 @@
 uniform float     uTime;
 uniform float     uDeltaTime;
 uniform sampler2D uBaseDataTexture;
-uniform float     uFlowFieldChangeFrequency;
+uniform float     uFlowFieldFrequency;
 uniform float     uFlowFieldStrength;
 uniform float     uFlowFieldStrengthRatio;
-uniform float     uParticleLifeDecay;
+uniform float     uPointLifeDecay;
 
 #include ./utils/calcSimplexNoise4d.glsl
 
@@ -23,7 +23,7 @@ void main() {
     }
     else {
         float strength = calcSimplexNoise4d(
-            vec4(basePosition.xyz, uTime * uFlowFieldChangeFrequency)
+            vec4(basePosition.xyz, uTime * uFlowFieldFrequency)
         );
         strength = smoothstep(
             1.0 - 2.0 * uFlowFieldStrengthRatio,
@@ -33,19 +33,19 @@ void main() {
 
         vec3 flowField = vec3(
             calcSimplexNoise4d(
-                vec4(position.xyz + 0.0, uTime * uFlowFieldChangeFrequency)
+                vec4(position.xyz + 0.0, uTime * uFlowFieldFrequency)
             ),
             calcSimplexNoise4d(
-                vec4(position.xyz + 1.0, uTime * uFlowFieldChangeFrequency)
+                vec4(position.xyz + 1.0, uTime * uFlowFieldFrequency)
             ),
             calcSimplexNoise4d(
-                vec4(position.xyz + 2.0, uTime * uFlowFieldChangeFrequency)
+                vec4(position.xyz + 2.0, uTime * uFlowFieldFrequency)
             )
         );
         flowField     = normalize(flowField);
         position.xyz += flowField * strength * uFlowFieldStrength * uDeltaTime;
 
-        position.a += uParticleLifeDecay * uDeltaTime;
+        position.a += uPointLifeDecay * uDeltaTime;
     }
 
     gl_FragColor = position;

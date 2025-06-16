@@ -13,6 +13,36 @@ import Model from './app/model.js'
 import parsVertexShader from './app/shader/pars_vertex.glsl'
 import positionVertexShader from './app/shader/position_vertex.glsl'
 
+/**
+ * @constant
+ * @type {number}
+ */
+const DEFAULT_POINTER_STRENGTH: number = 0.3
+
+/**
+ * @constant
+ * @type {number}
+ */
+const DEFAULT_POINTER_MIN_RAD: number = 0.5
+
+/**
+ * @constant
+ * @type {number}
+ */
+const DEFAULT_POINTER_MAX_RAD: number = 2
+
+/**
+ * @constant
+ * @type {number}
+ */
+const DEFAULT_POINTER_PULSE_STRENGTH: number = 0.2
+
+/**
+ * @constant
+ * @type {number}
+ */
+const DEFAULT_POINTER_PULSE_FREQUENCY: number = 1
+
 export default class App {
   /**
    * @type {Model}
@@ -35,18 +65,34 @@ export default class App {
    * @param {Model}           model
    * @param {Pointer}         pointer
    * @param {RendererManager} rendererManager
+   * @param {number}          pointerStrength
+   * @param {number}          pointerMinRad
+   * @param {number}          pointerMaxRad
+   * @param {number}          pointerPulseStrength
+   * @param {number}          pointerPulseFrequency
    */
   constructor(
     model: Model,
     pointer: Pointer,
     rendererManager: RendererManager,
+    pointerStrength: number = DEFAULT_POINTER_STRENGTH,
+    pointerMinRad: number = DEFAULT_POINTER_MIN_RAD,
+    pointerMaxRad: number = DEFAULT_POINTER_MAX_RAD,
+    pointerPulseStrength: number = DEFAULT_POINTER_PULSE_STRENGTH,
+    pointerPulseFrequency: number = DEFAULT_POINTER_PULSE_FREQUENCY,
   ) {
     this.#model = model
     this.#pointer = pointer
     this.#rendererManager = rendererManager
 
     this.#initPointer()
-    this.#initModel()
+    this.#initModel(
+      pointerStrength,
+      pointerMinRad,
+      pointerMaxRad,
+      pointerPulseStrength,
+      pointerPulseFrequency,
+    )
   }
 
   /**
@@ -106,13 +152,30 @@ export default class App {
   /**
    * Init model
    *
+   * @param   {number} pointerStrength
+   * @param   {number} pointerMinRad
+   * @param   {number} pointerMaxRad
+   * @param   {number} pointerPulseStrength
+   * @param   {number} pointerPulseFrequency
    * @returns {void}
    * @note    Set model at the center of the scene
    */
-  #initModel(): void {
+  #initModel(
+    pointerStrength: number,
+    pointerMinRad: number,
+    pointerMaxRad: number,
+    pointerPulseStrength: number,
+    pointerPulseFrequency: number,
+  ): void {
     this.#model.load().then(() => {
       if (this.#model.points) {
-        this.#addPointerHandlerToModel()
+        this.#addPointerHandlerToModel(
+          pointerStrength,
+          pointerMinRad,
+          pointerMaxRad,
+          pointerPulseStrength,
+          pointerPulseFrequency,
+        )
 
         this.#model.points.position.set(0, 0, 0)
         this.#rendererManager.scene.add(this.#model.points)
@@ -123,13 +186,24 @@ export default class App {
   /**
    * Add pointer handler to model
    *
+   * @param   {number} pointerStrength
+   * @param   {number} pointerMinRad
+   * @param   {number} pointerMaxRad
+   * @param   {number} pointerPulseStrength
+   * @param   {number} pointerPulseFrequency
    * @returns {void}
    * @note    Force shader compilation with `compile()`.
    *          If it is not forced the shader compilation, then
    *          uniforms will be undefined until first render of the scene
    * {@link   https://github.com/mrdoob/three.js/pull/10960}
    */
-  #addPointerHandlerToModel(): void {
+  #addPointerHandlerToModel(
+    pointerStrength: number,
+    pointerMinRad: number,
+    pointerMaxRad: number,
+    pointerPulseStrength: number,
+    pointerPulseFrequency: number,
+  ): void {
     if (this.#model.points) {
       this.#model.points.material.onBeforeCompile = (shader) => {
         if (this.#model.points) {
@@ -137,15 +211,15 @@ export default class App {
             new THREE.Vector3(),
           )
           this.#model.points.material.uniforms.uPointerStrength =
-            new THREE.Uniform(0.3)
-          this.#model.points.material.uniforms.uPointerPulseStrength =
-            new THREE.Uniform(0.2)
-          this.#model.points.material.uniforms.uPointerPulseFrequency =
-            new THREE.Uniform(1)
+            new THREE.Uniform(pointerStrength)
           this.#model.points.material.uniforms.uPointerMinRad =
-            new THREE.Uniform(0.5)
+            new THREE.Uniform(pointerMinRad)
           this.#model.points.material.uniforms.uPointerMaxRad =
-            new THREE.Uniform(2)
+            new THREE.Uniform(pointerMaxRad)
+          this.#model.points.material.uniforms.uPointerPulseStrength =
+            new THREE.Uniform(pointerPulseStrength)
+          this.#model.points.material.uniforms.uPointerPulseFrequency =
+            new THREE.Uniform(pointerPulseFrequency)
           this.#model.points.material.uniforms.uTime = new THREE.Uniform(0)
 
           shader.vertexShader = shader.vertexShader.replace(

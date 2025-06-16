@@ -11,6 +11,12 @@ import FlowFieldManager from './model/gpgpu/flow-field-manager.ts'
 import vertexShader from './model/shader/vertex.glsl'
 import fragmentShader from './model/shader/fragment.glsl'
 
+/**
+ * @constant
+ * @type {number}
+ */
+const DEFAULT_POINT_SIZE: number = 5
+
 export default class Model extends AbstractEntity {
   /**
    * @type {THREE.Points<THREE.BufferGeometry, THREE.ShaderMaterial> | null}
@@ -23,20 +29,28 @@ export default class Model extends AbstractEntity {
   readonly #flowFieldManager: FlowFieldManager | null = null
 
   /**
+   * @type {number}
+   */
+  readonly #pointSize: number
+
+  /**
    * Constructor
    *
    * @param {FlowFieldManager}   flowFieldManager
    * @param {string}             modelUrl
    * @param {ModelLoaderManager} modelLoaderManager
+   * @param {number}             pointSize
    */
   constructor(
     flowFieldManager: FlowFieldManager,
     modelUrl: string,
     modelLoaderManager: ModelLoaderManager,
+    pointSize: number = DEFAULT_POINT_SIZE,
   ) {
     super(modelUrl, modelLoaderManager)
 
     this.#flowFieldManager = flowFieldManager
+    this.#pointSize = pointSize
   }
 
   /**
@@ -100,7 +114,7 @@ export default class Model extends AbstractEntity {
         vertexShader: vertexShader,
         fragmentShader: fragmentShader,
         uniforms: {
-          uPointSize: new THREE.Uniform(5),
+          uPointSize: new THREE.Uniform(this.#pointSize),
           uPointPositionTexture: new THREE.Uniform(null),
         },
       }),
