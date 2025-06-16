@@ -10,6 +10,7 @@ import {
   Variable,
 } from 'three/addons/misc/GPUComputationRenderer.js'
 import GpGpuManager from '../../../lib/gpgpu-manager.js'
+import DebugManager from '../../../lib/debug-manager.js'
 import fragmentShader from './shader/fragment.glsl'
 
 /**
@@ -28,7 +29,7 @@ const DEFAULT_STRENGTH: number = 3
  * @constant
  * @type {number}
  */
-const DEFAULT_STRENGTH_RATIO: number = 0.25
+const DEFAULT_RATIO: number = 0.25
 
 /**
  * @constant
@@ -65,6 +66,11 @@ export default class FlowFieldManager {
   #gpGpuManager: GpGpuManager
 
   /**
+   * @type {DebugManager}
+   */
+  readonly #debugManager: DebugManager
+
+  /**
    * @type {number}
    */
   readonly #frequency: number
@@ -77,7 +83,7 @@ export default class FlowFieldManager {
   /**
    * @type {number}
    */
-  readonly #strengthRatio: number
+  readonly #ratio: number
 
   /**
    * @type {number}
@@ -88,22 +94,25 @@ export default class FlowFieldManager {
    * Constructor
    *
    * @param {GpGpuManager} gpGpuManager
+   * @param {DebugManager} debugManager
    * @param {number}       frequency
    * @param {number}       strength
-   * @param {number}       strengthRatio
+   * @param {number}       ratio
    * @param {number}       pointLifeDecay
    */
   constructor(
     gpGpuManager: GpGpuManager,
+    debugManager: DebugManager,
     frequency: number = DEFAULT_FREQUENCY,
     strength: number = DEFAULT_STRENGTH,
-    strengthRatio: number = DEFAULT_STRENGTH_RATIO,
+    ratio: number = DEFAULT_RATIO,
     pointLifeDecay: number = DEFAULT_POINT_LIFE_DECAY,
   ) {
     this.#gpGpuManager = gpGpuManager
+    this.#debugManager = debugManager
     this.#frequency = frequency
     this.#strength = strength
-    this.#strengthRatio = strengthRatio
+    this.#ratio = ratio
     this.#pointLifeDecay = pointLifeDecay
   }
 
@@ -130,7 +139,52 @@ export default class FlowFieldManager {
   }
 
   /**
-   * @inheritdoc
+   * Enable debug mode
+   *
+   * @returns {void}
+   */
+  debug(): void {
+    const pointMotionFolder = this.#debugManager.addFolder({
+      title: 'Model Point Motion',
+    })
+
+    this.#debugManager.addBindingWithOnChange(
+      this.#gpGpuVar.material.uniforms.uFlowFieldFrequency,
+      'value',
+      'frequency',
+      {min: 0, max: 0.25, step: 0.01},
+      pointMotionFolder,
+    )
+
+    this.#debugManager.addBindingWithOnChange(
+      this.#gpGpuVar.material.uniforms.uFlowFieldStrength,
+      'value',
+      'strength',
+      {min: 0, max: 5, step: 0.01},
+      pointMotionFolder,
+    )
+
+    this.#debugManager.addBindingWithOnChange(
+      this.#gpGpuVar.material.uniforms.uFlowFieldRatio,
+      'value',
+      'ratio',
+      {min: 0, max: 1, step: 0.01},
+      pointMotionFolder,
+    )
+
+    this.#debugManager.addBindingWithOnChange(
+      this.#gpGpuVar.material.uniforms.uFlowFieldPointLifeDecay,
+      'value',
+      'point-life-decay',
+      {min: 0, max: 1, step: 0.01},
+      pointMotionFolder,
+    )
+  }
+
+  /**
+   * Dispose
+   *
+   * @returns {void}
    */
   dispose(): void {
     this.#gpGpu.dispose()
@@ -166,11 +220,11 @@ export default class FlowFieldManager {
     this.#gpGpuVar.material.uniforms.uFlowFieldStrength = new THREE.Uniform(
       this.#strength,
     )
-    this.#gpGpuVar.material.uniforms.uFlowFieldStrengthRatio =
-      new THREE.Uniform(this.#strengthRatio)
-    this.#gpGpuVar.material.uniforms.uPointLifeDecay = new THREE.Uniform(
-      this.#pointLifeDecay,
+    this.#gpGpuVar.material.uniforms.uFlowFieldRatio = new THREE.Uniform(
+      this.#ratio,
     )
+    this.#gpGpuVar.material.uniforms.uFlowFieldPointLifeDecay =
+      new THREE.Uniform(this.#pointLifeDecay)
   }
 
   /**
@@ -199,7 +253,8 @@ export default class FlowFieldManager {
    * @param   {number} i
    * @param   {number} size
    * @returns {void}
-   * @note    The texture will be a square texture of width and height of `size`.
+   * @note    The texture will be a square texture
+   *          of width and height of `size`.
    *          The UV will work as an index to get vertex position from texture.
    *          That is why we generate UV here taking into consideration
    *          that texture size is `size`.
@@ -209,7 +264,7 @@ export default class FlowFieldManager {
    */
   #generateTexelUvFromVertex(i: number, size: number): void {
     const i2 = i * 2
-    const u = ((i + 0.5) % size) / size
+    const u = ((i % size) + 0.5) / size
     const v = (Math.floor(i / size) + 0.5) / size
     this.texelUv[i2 + 0] = u
     this.texelUv[i2 + 1] = v
