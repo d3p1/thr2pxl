@@ -8,6 +8,7 @@ import * as THREE from 'three'
 import ModelLoaderManager from '../lib/model-loader-manager.js'
 import AbstractEntity from './abstract-entity.js'
 import FlowFieldManager from './model/gpgpu/flow-field-manager.ts'
+import DebugManager from '../lib/debug-manager.js'
 import vertexShader from './model/shader/vertex.glsl'
 import fragmentShader from './model/shader/fragment.glsl'
 
@@ -29,6 +30,11 @@ export default class Model extends AbstractEntity {
   readonly #flowFieldManager: FlowFieldManager | null = null
 
   /**
+   * @type {DebugManager}
+   */
+  readonly #debugManager: DebugManager
+
+  /**
    * @type {number}
    */
   readonly #pointSize: number
@@ -37,12 +43,14 @@ export default class Model extends AbstractEntity {
    * Constructor
    *
    * @param {FlowFieldManager}   flowFieldManager
+   * @param {DebugManager}       debugManager
    * @param {string}             modelUrl
    * @param {ModelLoaderManager} modelLoaderManager
    * @param {number}             pointSize
    */
   constructor(
     flowFieldManager: FlowFieldManager,
+    debugManager: DebugManager,
     modelUrl: string,
     modelLoaderManager: ModelLoaderManager,
     pointSize: number = DEFAULT_POINT_SIZE,
@@ -50,6 +58,7 @@ export default class Model extends AbstractEntity {
     super(modelUrl, modelLoaderManager)
 
     this.#flowFieldManager = flowFieldManager
+    this.#debugManager = debugManager
     this.#pointSize = pointSize
   }
 
@@ -84,6 +93,29 @@ export default class Model extends AbstractEntity {
     ) as THREE.BufferAttribute
     this.#initFlowFieldManager(position)
     this.#initPoints(position, color)
+  }
+
+  /**
+   * Enable debug mode
+   *
+   * @returns {void}
+   */
+  debug(): void {
+    if (this.points) {
+      const pointFolder = this.#debugManager.addFolder({
+        title: 'Model Point',
+      })
+
+      this.#debugManager.addBindingWithOnChange(
+        this.points.material.uniforms.uPointSize,
+        'value',
+        'size',
+        {min: 0.1, max: 5, step: 0.1},
+        pointFolder,
+      )
+    }
+
+    this.#flowFieldManager?.debug()
   }
 
   /**
