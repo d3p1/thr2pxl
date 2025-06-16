@@ -2,7 +2,7 @@
  * @description App
  * @author      C. M. de Picciotto <d3p1@d3p1.dev> (https://d3p1.dev/)
  * @note        This class will manage how the renderer manager,
- *              debug manager, the image, the pointer
+ *              debug manager, the model, the pointer
  *              and the motion (i.e.: flow field)
  *              interact between each other
  */
@@ -10,6 +10,7 @@ import * as THREE from 'three'
 import RendererManager from './lib/renderer-manager.js'
 import Pointer from './app/pointer.js'
 import Model from './app/model.js'
+import DebugManager from './lib/debug-manager.js'
 import parsVertexShader from './app/shader/pars_vertex.glsl'
 import positionVertexShader from './app/shader/position_vertex.glsl'
 
@@ -60,11 +61,17 @@ export default class App {
   readonly #rendererManager: RendererManager
 
   /**
+   * @type {DebugManager}
+   */
+  readonly #debugManager: DebugManager
+
+  /**
    * Constructor
    *
    * @param {Model}           model
    * @param {Pointer}         pointer
    * @param {RendererManager} rendererManager
+   * @param {DebugManager}    debugManager
    * @param {number}          pointerStrength
    * @param {number}          pointerMinRad
    * @param {number}          pointerMaxRad
@@ -75,6 +82,7 @@ export default class App {
     model: Model,
     pointer: Pointer,
     rendererManager: RendererManager,
+    debugManager: DebugManager,
     pointerStrength: number = DEFAULT_POINTER_STRENGTH,
     pointerMinRad: number = DEFAULT_POINTER_MIN_RAD,
     pointerMaxRad: number = DEFAULT_POINTER_MAX_RAD,
@@ -84,6 +92,7 @@ export default class App {
     this.#model = model
     this.#pointer = pointer
     this.#rendererManager = rendererManager
+    this.#debugManager = debugManager
 
     this.#initPointer()
     this.#initModel(
@@ -122,6 +131,61 @@ export default class App {
   }
 
   /**
+   * Enable debug mode
+   *
+   * @returns {void}
+   */
+  debug(): void {
+    if (this.#model.points) {
+      const pointerFolder = this.#debugManager.addFolder({
+        title: 'Pointer',
+      })
+
+      this.#debugManager.addBindingWithOnChange(
+        this.#model.points.material.uniforms.uPointerStrength,
+        'value',
+        'strength',
+        {min: 0, max: 5, step: 0.01},
+        pointerFolder,
+      )
+
+      this.#debugManager.addBindingWithOnChange(
+        this.#model.points.material.uniforms.uPointerMinRad,
+        'value',
+        'min-rad',
+        {min: 0.01, max: 5, step: 0.01},
+        pointerFolder,
+      )
+
+      this.#debugManager.addBindingWithOnChange(
+        this.#model.points.material.uniforms.uPointerMaxRad,
+        'value',
+        'max-rad',
+        {min: 0.02, max: 10, step: 0.01},
+        pointerFolder,
+      )
+
+      this.#debugManager.addBindingWithOnChange(
+        this.#model.points.material.uniforms.uPointerPulseStrength,
+        'value',
+        'pulse-strength',
+        {min: 0, max: 2, step: 0.01},
+        pointerFolder,
+      )
+
+      this.#debugManager.addBindingWithOnChange(
+        this.#model.points.material.uniforms.uPointerPulseFrequency,
+        'value',
+        'pulse-frequency',
+        {min: 0, max: 5, step: 0.01},
+        pointerFolder,
+      )
+    }
+
+    this.#model.debug()
+  }
+
+  /**
    * Dispose
    *
    * @returns {void}
@@ -137,7 +201,6 @@ export default class App {
    * @returns {void}
    * @note    Set low poly model (raycaster model) at the center of the scene
    *          (the same position used for the model)
-   * @note    Add pointer effect to model
    */
   #initPointer(): void {
     this.#pointer.load().then(() => {
@@ -159,6 +222,7 @@ export default class App {
    * @param   {number} pointerPulseFrequency
    * @returns {void}
    * @note    Set model at the center of the scene
+   * @note    Add pointer effect to model
    */
   #initModel(
     pointerStrength: number,
