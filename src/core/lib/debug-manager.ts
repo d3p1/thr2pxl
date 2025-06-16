@@ -129,30 +129,36 @@ export default class DebugManager {
 
       if (state.children && state.children instanceof Array) {
         const pointer = state.children[1]
-        const pointerSize = pointer.children[0]['binding']['value']
-        const pointerTrailing = pointer.children[1]['binding']['value']
+        const pointerStrength = pointer.children[0]['binding']['value']
+        const pointerMinRad = pointer.children[1]['binding']['value']
+        const pointerMaxRad = pointer.children[2]['binding']['value']
+        const pointerPulseStrength = pointer.children[3]['binding']['value']
+        const pointerPulseFrequency = pointer.children[4]['binding']['value']
 
-        const imagePixel = state.children[4]
-        const imagePixelSize = imagePixel.children[0]['binding']['value']
+        const modelPoint = state.children[2]
+        const modelPointSize = modelPoint.children[0]['binding']['value']
 
-        const imagePixelMotion = state.children[5]
-        const imagePixelMotionFrequency =
-          imagePixelMotion.children[0]['binding']['value']
-        const imagePixelMotionAmplitude =
-          imagePixelMotion.children[1]['binding']['value']
-
-        const imageMotion = state.children[6]
-        const imageMotionFrequency = imageMotion.children[0]['binding']['value']
-        const imageMotionAmplitude = imageMotion.children[1]['binding']['value']
+        const modelPointMotion = state.children[3]
+        const modelPointMotionFrequency =
+          modelPointMotion.children[0]['binding']['value']
+        const modelPointMotionStrength =
+          modelPointMotion.children[1]['binding']['value']
+        const modelPointMotionRatio =
+          modelPointMotion.children[2]['binding']['value']
+        const modelPointMotionPointLifeDecay =
+          modelPointMotion.children[3]['binding']['value']
 
         const settings = getSettings(
-          imagePixelSize,
-          imagePixelMotionFrequency,
-          imagePixelMotionAmplitude,
-          imageMotionFrequency,
-          imageMotionAmplitude,
-          pointerSize,
-          pointerTrailing,
+          modelPointSize,
+          modelPointMotionFrequency,
+          modelPointMotionStrength,
+          modelPointMotionRatio,
+          modelPointMotionPointLifeDecay,
+          pointerStrength,
+          pointerMinRad,
+          pointerMaxRad,
+          pointerPulseStrength,
+          pointerPulseFrequency,
         )
 
         navigator.clipboard.writeText(settings).then(() => {
