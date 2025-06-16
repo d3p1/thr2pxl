@@ -11,8 +11,9 @@ import {Timer} from 'three/addons/misc/Timer.js'
 import ModelLoaderManager from './core/lib/model-loader-manager.js'
 import RendererManager from './core/lib/renderer-manager.js'
 import GpGpuManager from './core/lib/gpgpu-manager.js'
-import Pointer from './core/app/pointer.js'
+import FlowFieldManager from './core/app/model/gpgpu/flow-field-manager.js'
 import Model from './core/app/model.js'
+import Pointer from './core/app/pointer.js'
 import App from './core/app.js'
 
 export default class Thr2pxl {
@@ -22,19 +23,14 @@ export default class Thr2pxl {
   #app: App
 
   /**
-   * @type {Model}
-   */
-  #model: Model
-
-  /**
    * @type {Pointer}
    */
   #pointer: Pointer
 
   /**
-   * @type {GpGpuManager}
+   * @type {Model}
    */
-  #gpGpuManager: GpGpuManager
+  #model: Model
 
   /**
    * @type {RendererManager}
@@ -72,12 +68,11 @@ export default class Thr2pxl {
     this.#initTimer()
     this.#initModelLoaderManager(dracoUrl)
     this.#initRendererManager()
-    this.#initGpGpuManager()
     this.#initModel(modelUrl)
     this.#initPointer(lowPolyModelUrl)
     this.#initApp()
 
-    this.#animate()
+    this.#render()
   }
 
   /**
@@ -95,16 +90,16 @@ export default class Thr2pxl {
   }
 
   /**
-   * Animate
+   * Render
    *
    * @param   {number} t
    * @returns {void}
    */
-  #animate(t: number = 0): void {
+  #render(t: number = 0): void {
     this.#timer.update(t)
     this.#app.update(this.#timer.getDelta(), this.#timer.getElapsed())
     this.#rendererManager.update(this.#timer.getDelta())
-    this.#requestAnimationId = requestAnimationFrame(this.#animate.bind(this))
+    this.#requestAnimationId = requestAnimationFrame(this.#render.bind(this))
   }
 
   /**
@@ -137,20 +132,14 @@ export default class Thr2pxl {
    * @returns {void}
    */
   #initModel(modelUrl: string): void {
+    const gpGpuManager = new GpGpuManager(this.#rendererManager)
+    const flowFieldManager = new FlowFieldManager(gpGpuManager)
+
     this.#model = new Model(
-      this.#gpGpuManager,
+      flowFieldManager,
       modelUrl,
       this.#modelLoaderManager,
     )
-  }
-
-  /**
-   * Init GPGPU manager
-   *
-   * @returns {void}
-   */
-  #initGpGpuManager(): void {
-    this.#gpGpuManager = new GpGpuManager(this.#rendererManager)
   }
 
   /**
