@@ -7,46 +7,41 @@
  *              debug manager
  */
 export const getSettings = (
-  imagePixelSize: string,
-  imagePixelMotionFrequency: string,
-  imagePixelMotionAmplitude: string,
-  imageMotionFrequency: string,
-  imageMotionAmplitude: string,
-  pointerSize: string,
-  pointerTrailing: string,
+  modelPointSize: string,
+  modelPointMotionFrequency: string,
+  modelPointMotionStrength: string,
+  modelPointMotionRatio: string,
+  modelPointMotionLifeDecay: string,
+  pointerStrength: string,
+  pointerMinRad: string,
+  pointerMaxRad: string,
+  pointerPulseStrength: string,
+  pointerPulseFrequency: string,
 ) => {
   return `{
-    images: {
-      0: {
-        src: <image-src>,
-        width: <image-width>,
-        height: <image-height>,
-        resolution: {
-          width: <image-resolution-width>,
-          height: <image-resolution-height>
-        },
-        pixel: {
-          size: ${imagePixelSize},
-          motion: {
-            displacement: {
-              frequency: ${imagePixelMotionFrequency},
-              amplitude: ${imagePixelMotionAmplitude}
-            }
-          }
-        },
+    model: {
+      src: {
+        highPoly: <model-high-poly-src>,
+        lowPoly: <model-low-poly-src>
+      },
+      width: <model-width>,
+      height: <model-height>,
+      point: {
+        size: ${modelPointSize},
         motion: {
-          noise: {
-            frequency: ${imageMotionFrequency},
-            amplitude: ${imageMotionAmplitude}
-          }
+          frequency: ${modelPointMotionFrequency},
+          strength: ${modelPointMotionStrength},
+          ratio: ${modelPointMotionRatio},
+          lifeDecay: ${modelPointMotionLifeDecay}
         }
       }
     },
     pointer: {
-      size: ${pointerSize},
-      trailing: {
-        factor: ${pointerTrailing}
-      }
+      strength: ${pointerStrength},
+      minRad: ${pointerMinRad},
+      maxRad: ${pointerMaxRad},
+      pulseStrength: ${pointerPulseStrength},
+      pulseFrequency: ${pointerPulseFrequency}
     }
   }`
 }
