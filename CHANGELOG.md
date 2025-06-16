@@ -1,3 +1,10 @@
+# [1.10.0](https://github.com/d3p1/thr2pxl/compare/v1.9.0...v1.10.0) (2025-06-16)
+
+
+### Features
+
+* enable debugger by param [[#1](https://github.com/d3p1/thr2pxl/issues/1)] ([4a76049](https://github.com/d3p1/thr2pxl/commit/4a76049873aa138c86dfe13028e40ff6c8a705e7))
+
 # [1.9.0](https://github.com/d3p1/thr2pxl/compare/v1.8.3...v1.9.0) (2025-06-16)
 
 
