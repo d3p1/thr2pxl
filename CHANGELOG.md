@@ -1,3 +1,16 @@
+# [1.9.0](https://github.com/d3p1/thr2pxl/compare/v1.8.3...v1.9.0) (2025-06-16)
+
+
+### Bug Fixes
+
+* adjust debug point size option max value [[#1](https://github.com/d3p1/thr2pxl/issues/1)] ([7e4ba13](https://github.com/d3p1/thr2pxl/commit/7e4ba13e64d2d8fbf08829dcd2862d2d43842bc9))
+
+
+### Features
+
+* add copy button to debug manager [[#1](https://github.com/d3p1/thr2pxl/issues/1)] ([873e84b](https://github.com/d3p1/thr2pxl/commit/873e84bb550812fda27819b9d9c3c9d1596bf0dc))
+* enable/disable debug feature by key [[#1](https://github.com/d3p1/thr2pxl/issues/1)] ([51f1b10](https://github.com/d3p1/thr2pxl/commit/51f1b10504afb9a065b84416742a60dea9cf38c1))
+
 ## [1.8.3](https://github.com/d3p1/thr2pxl/compare/v1.8.2...v1.8.3) (2025-06-12)
 
 
