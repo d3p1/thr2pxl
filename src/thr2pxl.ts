@@ -108,7 +108,8 @@ export default class Thr2pxl {
    *              maxRad        ?: number;
    *              pulseStrength ?: number;
    *              pulseFrequency?: number;
-   *            }
+   *            };
+   *            isDebugging?: boolean;
    *        }} config
    */
   constructor(config: Config) {
@@ -136,7 +137,13 @@ export default class Thr2pxl {
       config.pointer?.pulseFrequency,
     )
 
-    this.#render()
+    /**
+     * @note If debugger is enabled by default,
+     *       wait for model to be loaded to initialize it
+     * @todo Improve this logic.
+     *       It was implemented in this way to release faster
+     */
+    this.#render(config.isDebugging ?? false)
   }
 
   /**
@@ -158,14 +165,35 @@ export default class Thr2pxl {
   /**
    * Render
    *
-   * @param   {number} t
+   * @param   {boolean} enableDebug
+   * @param   {number}  t
    * @returns {void}
    */
-  #render(t: number = 0): void {
+  #render(enableDebug: boolean, t: number = 0): void {
     this.#timer.update(t)
     this.#app.update(this.#timer.getDelta(), this.#timer.getElapsed())
     this.#rendererManager.update(this.#timer.getDelta())
-    this.#requestAnimationId = requestAnimationFrame(this.#render.bind(this))
+
+    /**
+     * @note If debugger is enabled by default,
+     *       wait for model to be loaded to initialize it.
+     *       Then avoid trying to enable it again
+     * @todo Improve this logic.
+     *       It was implemented in this way to release faster
+     */
+    if (
+      enableDebug &&
+      this.#app.model.points &&
+      this.#app.model.points.material.uniforms.uTime
+    ) {
+      this.#isDebugging = true
+      this.#enableDebug()
+      enableDebug = false
+    }
+
+    this.#requestAnimationId = requestAnimationFrame(
+      this.#render.bind(this, enableDebug),
+    )
   }
 
   /**
@@ -179,21 +207,39 @@ export default class Thr2pxl {
       this.#isDebugging = !this.#isDebugging
 
       if (this.#isDebugging) {
-        /**
-         * @note App debug settings should be enabled only once,
-         *       to avoid duplicating them on every debug enable
-         *       event
-         */
-        if (!this.#isDebugReady) {
-          this.#app.debug()
-          this.#isDebugReady = true
-        }
-
-        this.#debugManager.enable()
+        this.#enableDebug()
       } else {
-        this.#debugManager.disable()
+        this.#disableDebug()
       }
     }
+  }
+
+  /**
+   * Enable debug
+   *
+   * @returns {void}
+   */
+  #enableDebug(): void {
+    /**
+     * @note App debug settings should be enabled only once,
+     *       to avoid duplicating them on every debug enable
+     *       event
+     */
+    if (!this.#isDebugReady) {
+      this.#app.debug()
+      this.#isDebugReady = true
+    }
+
+    this.#debugManager.enable()
+  }
+
+  /**
+   * Disable debug
+   *
+   * @returns {void}
+   */
+  #disableDebug(): void {
+    this.#debugManager.disable()
   }
 
   /**
