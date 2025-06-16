@@ -34,7 +34,7 @@ export interface ModelSource {
     motion?: {
       frequency?: number
       strength?: number
-      strengthRatio?: number
+      ratio?: number
       lifeDecay?: number
     }
   }

@@ -8,6 +8,7 @@
  */
 import * as THREE from 'three'
 import {Timer} from 'three/addons/misc/Timer.js'
+import DebugManager from './core/lib/debug-manager.js'
 import ModelLoaderManager from './core/lib/model-loader-manager.js'
 import RendererManager from './core/lib/renderer-manager.js'
 import GpGpuManager from './core/lib/gpgpu-manager.js'
@@ -22,16 +23,6 @@ export default class Thr2pxl {
    * @type {App}
    */
   #app: App
-
-  /**
-   * @type {Pointer}
-   */
-  #pointer: Pointer
-
-  /**
-   * @type {Model}
-   */
-  #model: Model
 
   /**
    * @type {RendererManager}
@@ -49,6 +40,11 @@ export default class Thr2pxl {
   #timer: Timer
 
   /**
+   * @type {DebugManager}
+   */
+  #debugManager: DebugManager
+
+  /**
    * @type {number}
    */
   #requestAnimationId: number
@@ -58,48 +54,49 @@ export default class Thr2pxl {
    *
    * @param {{
    *            containerSelector?: string;
-   *            model: {
+   *            model             : {
    *              src: {
    *                highPoly: string;
-   *                lowPoly: string;
-   *              }
-   *              width: number;
-   *              height: number;
+   *                lowPoly : string;
+   *              };
+   *              width  : number;
+   *              height : number;
    *              camera?: {
    *                position?: {
    *                  x: number;
    *                  y: number;
    *                  z: number;
-   *                }
-   *                fov?: number;
-   *                near?: number;
-   *                far?: number;
+   *                };
+   *                fov              ?: number;
+   *                near             ?: number;
+   *                far              ?: number;
    *                isControlsEnabled?: boolean;
-   *              }
+   *              };
    *              point?: {
-   *                size?: number;
+   *                size  ?: number;
    *                motion?: {
    *                  frequency?: number;
-   *                  strength?: number;
-   *                  strengthRatio?: number;
+   *                  strength ?: number;
+   *                  ratio    ?: number;
    *                  lifeDecay?: number;
    *                }
    *              }
-   *            }
+   *            };
    *            loader?: {
    *              dracoUrl?: string;
-   *            }
+   *            };
    *            pointer?: {
-   *              strength?: number;
-   *              minRad?: number;
-   *              maxRad?: number;
-   *              pulseStrength?: number;
+   *              strength      ?: number;
+   *              minRad        ?: number;
+   *              maxRad        ?: number;
+   *              pulseStrength ?: number;
    *              pulseFrequency?: number;
-   *            }
+   *            };
    *            isDebugging?: boolean;
    *        }} config
    */
   constructor(config: Config) {
+    this.#initDebugManager()
     this.#initTimer()
     this.#initModelLoaderManager(config.loader?.dracoUrl ?? null)
     this.#initRendererManager(
@@ -108,16 +105,14 @@ export default class Thr2pxl {
       config.containerSelector ?? null,
       config.model.camera ?? null,
     )
-    this.#initModel(
+    this.#initApp(
       config.model.src.highPoly,
+      config.model.src.lowPoly,
       config.model.point?.size,
       config.model.point?.motion?.frequency,
       config.model.point?.motion?.strength,
-      config.model.point?.motion?.strengthRatio,
+      config.model.point?.motion?.ratio,
       config.model.point?.motion?.lifeDecay,
-    )
-    this.#initPointer(config.model.src.lowPoly)
-    this.#initApp(
       config.pointer?.strength,
       config.pointer?.minRad,
       config.pointer?.maxRad,
@@ -126,6 +121,15 @@ export default class Thr2pxl {
     )
 
     this.#render()
+  }
+
+  /**
+   * Enable debug mode
+   *
+   * @returns {void}
+   */
+  debug(): void {
+    this.#app.debug()
   }
 
   /**
@@ -140,6 +144,7 @@ export default class Thr2pxl {
     this.#app.dispose()
     this.#rendererManager.dispose()
     this.#modelLoaderManager.dispose()
+    this.#debugManager.dispose()
   }
 
   /**
@@ -158,6 +163,13 @@ export default class Thr2pxl {
   /**
    * Init app
    *
+   * @param   {string}             modelUrl
+   * @param   {string}             lowPolyUrl
+   * @param   {number | undefined} pointSize
+   * @param   {number | undefined} flowFieldFrequency
+   * @param   {number | undefined} flowFieldStrength
+   * @param   {number | undefined} flowFieldRatio
+   * @param   {number | undefined} flowFieldPointLifeDecay
    * @param   {number | undefined} pointerStrength
    * @param   {number | undefined} pointerMinRad
    * @param   {number | undefined} pointerMaxRad
@@ -166,16 +178,35 @@ export default class Thr2pxl {
    * @returns {void}
    */
   #initApp(
+    modelUrl: string,
+    lowPolyUrl: string,
+    pointSize: number | undefined,
+    flowFieldFrequency: number | undefined,
+    flowFieldStrength: number | undefined,
+    flowFieldRatio: number | undefined,
+    flowFieldPointLifeDecay: number | undefined,
     pointerStrength: number | undefined,
     pointerMinRad: number | undefined,
     pointerMaxRad: number | undefined,
     pointerPulseStrength: number | undefined,
     pointerPulseFrequency: number | undefined,
   ): void {
+    const model = this.#initModel(
+      modelUrl,
+      pointSize,
+      flowFieldFrequency,
+      flowFieldStrength,
+      flowFieldRatio,
+      flowFieldPointLifeDecay,
+    )
+
+    const pointer = this.#initPointer(lowPolyUrl)
+
     this.#app = new App(
-      this.#model,
-      this.#pointer,
+      model,
+      pointer,
       this.#rendererManager,
+      this.#debugManager,
       pointerStrength,
       pointerMinRad,
       pointerMaxRad,
@@ -188,10 +219,10 @@ export default class Thr2pxl {
    * Init pointer
    *
    * @param   {string} lowPolyUrl
-   * @returns {void}
+   * @returns {Pointer}
    */
-  #initPointer(lowPolyUrl: string): void {
-    this.#pointer = new Pointer(
+  #initPointer(lowPolyUrl: string): Pointer {
+    return new Pointer(
       this.#rendererManager,
       lowPolyUrl,
       this.#modelLoaderManager,
@@ -205,29 +236,31 @@ export default class Thr2pxl {
    * @param   {number | undefined} pointSize
    * @param   {number | undefined} flowFieldFrequency
    * @param   {number | undefined} flowFieldStrength
-   * @param   {number | undefined} flowFieldStrengthRatio
+   * @param   {number | undefined} flowFieldRatio
    * @param   {number | undefined} flowFieldPointLifeDecay
-   * @returns {void}
+   * @returns {Model}
    */
   #initModel(
     modelUrl: string,
     pointSize: number | undefined,
     flowFieldFrequency: number | undefined,
     flowFieldStrength: number | undefined,
-    flowFieldStrengthRatio: number | undefined,
+    flowFieldRatio: number | undefined,
     flowFieldPointLifeDecay: number | undefined,
-  ): void {
+  ): Model {
     const gpGpuManager = new GpGpuManager(this.#rendererManager)
     const flowFieldManager = new FlowFieldManager(
       gpGpuManager,
+      this.#debugManager,
       flowFieldFrequency,
       flowFieldStrength,
-      flowFieldStrengthRatio,
+      flowFieldRatio,
       flowFieldPointLifeDecay,
     )
 
-    this.#model = new Model(
+    return new Model(
       flowFieldManager,
+      this.#debugManager,
       modelUrl,
       this.#modelLoaderManager,
       pointSize,
@@ -245,10 +278,10 @@ export default class Thr2pxl {
    *              x: number;
    *              y: number;
    *              z: number;
-   *            }
-   *            fov?: number;
-   *            near?: number;
-   *            far?: number;
+   *            };
+   *            fov              ?: number;
+   *            near             ?: number;
+   *            far              ?: number;
    *            isControlsEnabled?: boolean;
    *          } | null} camera
    * @returns {void}
@@ -302,5 +335,14 @@ export default class Thr2pxl {
    */
   #initTimer(): void {
     this.#timer = new Timer()
+  }
+
+  /**
+   * Init debug manager
+   *
+   * @returns {void}
+   */
+  #initDebugManager(): void {
+    this.#debugManager = new DebugManager()
   }
 }
