@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/d3p1/thr2pxl#readme",
   "dependencies": {
+    "@d3p1/thr2pxl": "^1.10.0",
     "next": "15.3.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"

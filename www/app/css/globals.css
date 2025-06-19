@@ -1,0 +1,21 @@
+/**
+ * @description Global styles
+ * @author      C. M. de Picciotto <d3p1@d3p1.dev> (https://d3p1.dev/)
+ * @note        By default, debugger is hidden in mobile version
+ *              to avoid usability issues
+ */
+@import "tailwindcss";
+
+@theme {
+    --color-primary-800: hsl(220, 8%, 7%);
+    --color-primary-600: hsl(220, 4%, 16%);
+    --color-secondary: hsl(220, 13%, 95%);
+    --color-accent-300: hsl(190, 100%, 50%);
+    --color-accent-600: hsl(230, 100%, 62%);
+}
+
+@layer components {
+    .tp-rotv {
+        @apply w-full sm:w-auto sm:absolute sm:right-0 sm:top-0;
+    }
+}
