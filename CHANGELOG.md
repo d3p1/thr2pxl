@@ -1,3 +1,10 @@
+## [1.10.1](https://github.com/d3p1/thr2pxl/compare/v1.10.0...v1.10.1) (2025-06-19)
+
+
+### Bug Fixes
+
+* add debugger to custom container [[#1](https://github.com/d3p1/thr2pxl/issues/1)] ([4bfafd0](https://github.com/d3p1/thr2pxl/commit/4bfafd094253e7a5aa335f6cde8222170f7914be))
+
 # [1.10.0](https://github.com/d3p1/thr2pxl/compare/v1.9.0...v1.10.0) (2025-06-16)
 
 
