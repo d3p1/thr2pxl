@@ -19,7 +19,7 @@ export default function Lib() {
         height: 800,
         camera: {
           position: {
-            x: 5,
+            x: 1.5,
             y: 0,
             z: 10,
           },
