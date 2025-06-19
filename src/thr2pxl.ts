@@ -113,7 +113,7 @@ export default class Thr2pxl {
    *        }} config
    */
   constructor(config: Config) {
-    this.#initDebugManager()
+    this.#initDebugManager(config.containerSelector ?? null)
     this.#initTimer()
     this.#initModelLoaderManager(config.loader?.dracoUrl ?? null)
     this.#initRendererManager(
@@ -224,6 +224,8 @@ export default class Thr2pxl {
      * @note App debug settings should be enabled only once,
      *       to avoid duplicating them on every debug enable
      *       event
+     * @todo Improve this logic.
+     *       It was implemented in this way to release faster
      */
     if (!this.#isDebugReady) {
       this.#app.debug()
@@ -432,15 +434,22 @@ export default class Thr2pxl {
   /**
    * Init debug manager
    *
+   * @param   {string | null} containerSelector
    * @returns {void}
    * @note    Disable debug feature by default
    */
-  #initDebugManager(): void {
+  #initDebugManager(containerSelector: string | null): void {
     this.#debugManager = new DebugManager()
     this.#debugManager.disable()
     this.#isDebugging = false
 
     this.#boundHandleDebug = this.#handleDebug.bind(this)
     document.addEventListener('keydown', this.#boundHandleDebug)
+
+    if (containerSelector) {
+      document
+        .querySelector(containerSelector)
+        ?.appendChild(this.#debugManager.debugger.element)
+    }
   }
 }
