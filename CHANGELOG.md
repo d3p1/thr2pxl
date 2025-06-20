@@ -1,3 +1,10 @@
+## [1.10.2](https://github.com/d3p1/thr2pxl/compare/v1.10.1...v1.10.2) (2025-06-20)
+
+
+### Bug Fixes
+
+* center geometry by default [[#1](https://github.com/d3p1/thr2pxl/issues/1)] ([70eba52](https://github.com/d3p1/thr2pxl/commit/70eba527285c05e6b6f7392728f21fdf624809f6))
+
 ## [1.10.1](https://github.com/d3p1/thr2pxl/compare/v1.10.0...v1.10.1) (2025-06-19)
 
 
