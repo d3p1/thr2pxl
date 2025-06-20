@@ -15,24 +15,40 @@
 <body class="w-screen h-screen grid place-items-center bg-primary-800">
   <script type="module">
     import Thr2Pxl from '../src/thr2pxl.js'
-    import shipModelUrl from './media/models/ship.glb'
-    import lowPolyShipModelUrl from './media/models/ship.simplified.glb'
+    import queenModelUrl from './media/models/queen/queen.glb'
+    import lowPolyQueenModelUrl from './media/models/queen/queen.simplified.glb'
 
     new Thr2Pxl({
       model: {
         src: {
-          highPoly: shipModelUrl,
-          lowPoly: lowPolyShipModelUrl
+          highPoly: queenModelUrl,
+          lowPoly: lowPolyQueenModelUrl
         },
         width: window.innerWidth,
         height: window.innerHeight,
         camera: {
           position: {
-            x: 5,
-            y: 0,
-            z: 10
+            x: 4,
+            y: 6,
+            z: 4
+          }
+        },
+        point: {
+          size: 5,
+          motion: {
+            frequency: 0.15,
+            strength: 2.5,
+            ratio: 0.25,
+            lifeDecay: 0.6
           }
         }
+      },
+      pointer: {
+        strength: 0.2,
+        minRad: 1,
+        maxRad: 2,
+        pulseStrength: 0.2,
+        pulseFrequency: 1
       },
       loader: {
         dracoUrl: './js/draco/'
