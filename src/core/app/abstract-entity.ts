@@ -45,6 +45,7 @@ export default abstract class AbstractEntity {
    */
   async load(): Promise<void> {
     this.mesh = await this.#modelLoaderManager.loadMeshFromModel(this.#modelUrl)
+    this.mesh.geometry.center()
   }
 
   /**
