@@ -9,7 +9,7 @@ export default function Logo() {
     <div className="logo">
       <Image
         src="/thr2pxl/media/images/logo.png"
-        width="128"
+        width="124"
         height="412"
         alt="thr2pxl"
       />
