@@ -1,3 +1,10 @@
+## [1.10.3](https://github.com/d3p1/thr2pxl/compare/v1.10.2...v1.10.3) (2025-06-21)
+
+
+### Bug Fixes
+
+* solve animation restart that happens when tab is inactive [[#1](https://github.com/d3p1/thr2pxl/issues/1)] ([133a9f0](https://github.com/d3p1/thr2pxl/commit/133a9f04878a0d3b9664bcb8d2f8e9b49ecca703))
+
 ## [1.10.2](https://github.com/d3p1/thr2pxl/compare/v1.10.1...v1.10.2) (2025-06-20)
 
 
