@@ -18,8 +18,7 @@ void main() {
     vec4  basePosition = texture(uBaseDataTexture, uv);
 
     if (position.a >= 1.0) {
-        position.a   = 0.0;
-        position.xyz = basePosition.xyz;
+        position = basePosition;
     }
     else {
         float strength = calcSimplexNoise4d(
