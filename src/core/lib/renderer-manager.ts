@@ -49,31 +49,13 @@ export default class RendererManager {
 
   /**
    * @type {number}
-   * @note This property will store the aspect ratio between
-   *       container width and window width.
-   *       In that way, every time the window is resized,
-   *       we can calculate container width based on the window's width
    */
-  #windowAspect: number
-
-  /**
-   * @type {number}
-   * @note This property will store the aspect ratio between
-   *       container height and container width.
-   *       In that way, every time the container is resized,
-   *       we can calculate its height based on its width
-   */
-  #containerAspect: number
+  readonly #width: number
 
   /**
    * @type {number}
    */
-  #width: number
-
-  /**
-   * @type {number}
-   */
-  #height: number
+  readonly #height: number
 
   /**
    * @type {number}
@@ -106,11 +88,6 @@ export default class RendererManager {
   readonly #cameraFar: number
 
   /**
-   * @type {() => void}
-   */
-  #boundHandleResize: () => void
-
-  /**
    * Constructor
    *
    * @param {number}        width
@@ -134,12 +111,13 @@ export default class RendererManager {
     cameraFar: number = DEFAULT_CAMERA_FAR,
     isCameraControlsEnabled: boolean = true,
   ) {
+    this.#width = width
+    this.#height = height
     this.#cameraPosition = cameraPosition
     this.#cameraFov = cameraFov
     this.#cameraNear = cameraNear
     this.#cameraFar = cameraFar
 
-    this.#initSizes(width, height)
     this.#initScene()
     this.#initCamera()
     this.#initRenderer()
@@ -179,8 +157,6 @@ export default class RendererManager {
    * @returns {void}
    */
   dispose(): void {
-    window.removeEventListener('resize', this.#boundHandleResize)
-
     this.#disposeScene()
     this.#disposeRenderer()
   }
@@ -207,23 +183,6 @@ export default class RendererManager {
   }
 
   /**
-   * Resize renderer
-   *
-   * @returns {void}
-   */
-  #handleResize(): void {
-    this.#width = this.#windowAspect * window.innerWidth
-    this.#height = this.#containerAspect * this.#width
-
-    this.#initDpr()
-    this.renderer.setSize(this.#width, this.#height)
-    this.renderer.setPixelRatio(this.#dpr)
-
-    this.camera.aspect = this.#width / this.#height
-    this.camera.updateProjectionMatrix()
-  }
-
-  /**
    * Init camera controls
    *
    * @returns {void}
@@ -242,7 +201,8 @@ export default class RendererManager {
    * @returns {void}
    */
   #initRenderer(): void {
-    this.#initDpr()
+    this.#dpr = Math.min(window.devicePixelRatio, MAX_DPR)
+
     let antialias = false
     if (this.#dpr <= 1) {
       antialias = true
@@ -254,11 +214,8 @@ export default class RendererManager {
       canvas: canvas,
     })
     this.renderer.setClearAlpha(0)
-
-    this.#boundHandleResize = this.#handleResize.bind(this)
-    window.addEventListener('resize', this.#boundHandleResize)
-
-    this.#handleResize()
+    this.renderer.setSize(this.#width, this.#height)
+    this.renderer.setPixelRatio(this.#dpr)
   }
 
   /**
@@ -284,28 +241,5 @@ export default class RendererManager {
    */
   #initScene(): void {
     this.scene = new THREE.Scene()
-  }
-
-  /**
-   * Init device pixel ratio
-   *
-   * @returns {void}
-   */
-  #initDpr(): void {
-    this.#dpr = Math.min(window.devicePixelRatio, MAX_DPR)
-  }
-
-  /**
-   * Init sizes
-   *
-   * @param   {number} width
-   * @param   {number} height
-   * @returns {void}
-   */
-  #initSizes(width: number, height: number): void {
-    this.#width = width
-    this.#height = height
-    this.#windowAspect = this.#width / window.innerWidth
-    this.#containerAspect = this.#height / this.#width
   }
 }
