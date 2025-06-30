@@ -1,3 +1,10 @@
+## [1.11.2](https://github.com/d3p1/thr2pxl/compare/v1.11.1...v1.11.2) (2025-06-30)
+
+
+### Bug Fixes
+
+* adjust gpgpu sometimes is undefined when disposing [[#1](https://github.com/d3p1/thr2pxl/issues/1)] ([22b954e](https://github.com/d3p1/thr2pxl/commit/22b954eba2d59b6606f27880d189627a7913f2e0))
+
 ## [1.11.1](https://github.com/d3p1/thr2pxl/compare/v1.11.0...v1.11.1) (2025-06-30)
 
 
