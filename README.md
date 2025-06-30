@@ -86,13 +86,13 @@ new Thr2pxl({
         }
       }
     },
-    pointer: {
-      strength: 0.2,
-      minRad: 1,
-      maxRad: 2,
-      pulseStrength: 0.2,
-      pulseFrequency: 1
-    }
+  },
+  pointer: {
+    strength: 0.2,
+    minRad: 1,
+    maxRad: 2,
+    pulseStrength: 0.2,
+    pulseFrequency: 1
   }
 })
 ```
