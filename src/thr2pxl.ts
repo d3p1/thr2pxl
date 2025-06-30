@@ -10,13 +10,14 @@ import * as THREE from 'three'
 import {Timer} from 'three/addons/misc/Timer.js'
 import DebugManager from './core/lib/debug-manager.js'
 import ModelLoaderManager from './core/lib/model-loader-manager.js'
+import ModelManager from './core/lib/model-manager.js'
 import RendererManager from './core/lib/renderer-manager.js'
 import GpGpuManager from './core/lib/gpgpu-manager.js'
 import FlowFieldManager from './core/app/model/gpgpu/flow-field-manager.js'
 import Model from './core/app/model.js'
 import Pointer from './core/app/pointer.js'
 import App from './core/app.js'
-import {Config, ModelSourceCamera} from './types'
+import {Config} from './types'
 
 export default class Thr2pxl {
   /**
@@ -35,6 +36,11 @@ export default class Thr2pxl {
   #modelLoaderManager: ModelLoaderManager
 
   /**
+   * @type {ModelManager}
+   */
+  #modelManager: ModelManager
+
+  /**
    * @type {Timer}
    */
   #timer: Timer
@@ -43,6 +49,52 @@ export default class Thr2pxl {
    * @type {DebugManager}
    */
   #debugManager: DebugManager
+
+  /**
+   * @type {{
+   *   containerSelector?: string;
+   *   models            : {
+   *     src: {
+   *       highPoly: string;
+   *       lowPoly : string;
+   *     };
+   *     width  : number;
+   *     height : number;
+   *     camera?: {
+   *       position?: {
+   *         x: number;
+   *         y: number;
+   *         z: number;
+   *       };
+   *       fov              ?: number;
+   *       near             ?: number;
+   *       far              ?: number;
+   *       isControlsEnabled?: boolean;
+   *     };
+   *     point?: {
+   *       size  ?: number;
+   *       motion?: {
+   *         frequency?: number;
+   *         strength ?: number;
+   *         ratio    ?: number;
+   *         lifeDecay?: number;
+   *       }
+   *     }
+   *   };
+   *   loader?: {
+   *     dracoUrl?: string;
+   *   };
+   *   pointer?: {
+   *     strength      ?: number;
+   *     minRad        ?: number;
+   *     maxRad        ?: number;
+   *     pulseStrength ?: number;
+   *     pulseFrequency?: number;
+   *   };
+   *   isDebugging?: boolean;
+   * }}
+   */
+  #config: Config
 
   /**
    * @type {number}
@@ -67,11 +119,16 @@ export default class Thr2pxl {
   #boundHandleDebug: (e: KeyboardEvent) => void
 
   /**
+   * @type {Function}
+   */
+  #boundHandleResize: (e: Event) => void
+
+  /**
    * Constructor
    *
    * @param {{
    *            containerSelector?: string;
-   *            model             : {
+   *            models            : {
    *              src: {
    *                highPoly: string;
    *                lowPoly : string;
@@ -113,37 +170,10 @@ export default class Thr2pxl {
    *        }} config
    */
   constructor(config: Config) {
-    this.#initDebugManager(config.containerSelector ?? null)
-    this.#initTimer()
-    this.#initModelLoaderManager(config.loader?.dracoUrl ?? null)
-    this.#initRendererManager(
-      config.model.width,
-      config.model.height,
-      config.containerSelector ?? null,
-      config.model.camera ?? null,
-    )
-    this.#initApp(
-      config.model.src.highPoly,
-      config.model.src.lowPoly,
-      config.model.point?.size,
-      config.model.point?.motion?.frequency,
-      config.model.point?.motion?.strength,
-      config.model.point?.motion?.ratio,
-      config.model.point?.motion?.lifeDecay,
-      config.pointer?.strength,
-      config.pointer?.minRad,
-      config.pointer?.maxRad,
-      config.pointer?.pulseStrength,
-      config.pointer?.pulseFrequency,
-    )
+    this.#config = config
+    this.#modelManager = new ModelManager(config.models)
 
-    /**
-     * @note If debugger is enabled by default,
-     *       wait for model to be loaded to initialize it
-     * @todo Improve this logic.
-     *       It was implemented in this way to release faster
-     */
-    this.#render(config.isDebugging ?? false)
+    this.#init()
   }
 
   /**
@@ -154,12 +184,43 @@ export default class Thr2pxl {
   dispose(): void {
     cancelAnimationFrame(this.#requestAnimationId)
 
+    window.removeEventListener('resize', this.#boundHandleResize)
+
     this.#timer.dispose()
     this.#app.dispose()
     this.#rendererManager.dispose()
     this.#modelLoaderManager.dispose()
 
     this.#disposeDebugManager()
+  }
+
+  /**
+   * Init
+   *
+   * @returns {void}
+   */
+  #init(): void {
+    this.#initDebugManager()
+    this.#initTimer()
+    this.#initModelLoaderManager()
+    this.#initRendererManager()
+    this.#initApp()
+
+    this.#boundHandleResize = () => {
+      if (this.#modelManager.update()) {
+        this.dispose()
+        this.#init()
+      }
+    }
+    window.addEventListener('resize', this.#boundHandleResize)
+
+    /**
+     * @note If debugger is enabled by default,
+     *       wait for model to be loaded to initialize it
+     * @todo Improve this logic.
+     *       It was implemented in this way to release faster
+     */
+    this.#render(this.#config.isDebugging ?? false)
   }
 
   /**
@@ -257,68 +318,33 @@ export default class Thr2pxl {
   /**
    * Init app
    *
-   * @param   {string}             modelUrl
-   * @param   {string}             lowPolyUrl
-   * @param   {number | undefined} pointSize
-   * @param   {number | undefined} flowFieldFrequency
-   * @param   {number | undefined} flowFieldStrength
-   * @param   {number | undefined} flowFieldRatio
-   * @param   {number | undefined} flowFieldPointLifeDecay
-   * @param   {number | undefined} pointerStrength
-   * @param   {number | undefined} pointerMinRad
-   * @param   {number | undefined} pointerMaxRad
-   * @param   {number | undefined} pointerPulseStrength
-   * @param   {number | undefined} pointerPulseFrequency
    * @returns {void}
    */
-  #initApp(
-    modelUrl: string,
-    lowPolyUrl: string,
-    pointSize: number | undefined,
-    flowFieldFrequency: number | undefined,
-    flowFieldStrength: number | undefined,
-    flowFieldRatio: number | undefined,
-    flowFieldPointLifeDecay: number | undefined,
-    pointerStrength: number | undefined,
-    pointerMinRad: number | undefined,
-    pointerMaxRad: number | undefined,
-    pointerPulseStrength: number | undefined,
-    pointerPulseFrequency: number | undefined,
-  ): void {
-    const model = this.#initModel(
-      modelUrl,
-      pointSize,
-      flowFieldFrequency,
-      flowFieldStrength,
-      flowFieldRatio,
-      flowFieldPointLifeDecay,
-    )
-
-    const pointer = this.#initPointer(lowPolyUrl)
-
+  #initApp(): void {
+    const model = this.#initModel()
+    const pointer = this.#initPointer()
     this.#app = new App(
       model,
       pointer,
       this.#rendererManager,
       this.#debugManager,
-      pointerStrength,
-      pointerMinRad,
-      pointerMaxRad,
-      pointerPulseStrength,
-      pointerPulseFrequency,
+      this.#config.pointer?.strength,
+      this.#config.pointer?.minRad,
+      this.#config.pointer?.maxRad,
+      this.#config.pointer?.pulseStrength,
+      this.#config.pointer?.pulseFrequency,
     )
   }
 
   /**
    * Init pointer
    *
-   * @param   {string} lowPolyUrl
    * @returns {Pointer}
    */
-  #initPointer(lowPolyUrl: string): Pointer {
+  #initPointer(): Pointer {
     return new Pointer(
       this.#rendererManager,
-      lowPolyUrl,
+      this.#modelManager.currentModel.src.lowPoly,
       this.#modelLoaderManager,
     )
   }
@@ -326,86 +352,54 @@ export default class Thr2pxl {
   /**
    * Init model
    *
-   * @param   {string}             modelUrl
-   * @param   {number | undefined} pointSize
-   * @param   {number | undefined} flowFieldFrequency
-   * @param   {number | undefined} flowFieldStrength
-   * @param   {number | undefined} flowFieldRatio
-   * @param   {number | undefined} flowFieldPointLifeDecay
    * @returns {Model}
    */
-  #initModel(
-    modelUrl: string,
-    pointSize: number | undefined,
-    flowFieldFrequency: number | undefined,
-    flowFieldStrength: number | undefined,
-    flowFieldRatio: number | undefined,
-    flowFieldPointLifeDecay: number | undefined,
-  ): Model {
+  #initModel(): Model {
     const gpGpuManager = new GpGpuManager(this.#rendererManager)
     const flowFieldManager = new FlowFieldManager(
       gpGpuManager,
       this.#debugManager,
-      flowFieldFrequency,
-      flowFieldStrength,
-      flowFieldRatio,
-      flowFieldPointLifeDecay,
+      this.#modelManager.currentModel.point?.motion?.frequency,
+      this.#modelManager.currentModel.point?.motion?.strength,
+      this.#modelManager.currentModel.point?.motion?.ratio,
+      this.#modelManager.currentModel.point?.motion?.lifeDecay,
     )
 
     return new Model(
       flowFieldManager,
       this.#debugManager,
-      modelUrl,
+      this.#modelManager.currentModel.src.highPoly,
       this.#modelLoaderManager,
-      pointSize,
+      this.#modelManager.currentModel.point?.size,
     )
   }
 
   /**
    * Init renderer manager
    *
-   * @param   {number}        width
-   * @param   {number}        height
-   * @param   {string | null} containerSelector
-   * @param   {{
-   *            position?: {
-   *              x: number;
-   *              y: number;
-   *              z: number;
-   *            };
-   *            fov              ?: number;
-   *            near             ?: number;
-   *            far              ?: number;
-   *            isControlsEnabled?: boolean;
-   *          } | null} camera
    * @returns {void}
    */
-  #initRendererManager(
-    width: number,
-    height: number,
-    containerSelector: string | null,
-    camera: ModelSourceCamera | null,
-  ): void {
-    const cameraPosition = camera?.position
+  #initRendererManager(): void {
+    const cameraPosition = this.#modelManager.currentModel.camera?.position
       ? new THREE.Vector3(
-          camera.position.x,
-          camera.position.y,
-          camera.position.z,
+          this.#modelManager.currentModel.camera.position.x,
+          this.#modelManager.currentModel.camera.position.y,
+          this.#modelManager.currentModel.camera.position.z,
         )
       : undefined
     this.#rendererManager = new RendererManager(
-      width,
-      height,
+      this.#modelManager.currentModel.width,
+      this.#modelManager.currentModel.height,
       cameraPosition,
-      camera?.fov,
-      camera?.near,
-      camera?.far,
-      camera?.isControlsEnabled,
+      this.#modelManager.currentModel.camera?.fov,
+      this.#modelManager.currentModel.camera?.near,
+      this.#modelManager.currentModel.camera?.far,
+      this.#modelManager.currentModel.camera?.isControlsEnabled,
     )
 
-    if (containerSelector) {
+    if (this.#config.containerSelector) {
       document
-        .querySelector(containerSelector)
+        .querySelector(this.#config.containerSelector)
         ?.appendChild(this.#rendererManager.renderer.domElement)
     } else {
       document.body.appendChild(this.#rendererManager.renderer.domElement)
@@ -415,11 +409,12 @@ export default class Thr2pxl {
   /**
    * Init model loader manager
    *
-   * @param   {string | null} dracoUrl
    * @returns {void}
    */
-  #initModelLoaderManager(dracoUrl: string | null): void {
-    this.#modelLoaderManager = new ModelLoaderManager(dracoUrl)
+  #initModelLoaderManager(): void {
+    this.#modelLoaderManager = new ModelLoaderManager(
+      this.#config.loader?.dracoUrl,
+    )
   }
 
   /**
@@ -434,11 +429,10 @@ export default class Thr2pxl {
   /**
    * Init debug manager
    *
-   * @param   {string | null} containerSelector
    * @returns {void}
    * @note    Disable debug feature by default
    */
-  #initDebugManager(containerSelector: string | null): void {
+  #initDebugManager(): void {
     this.#debugManager = new DebugManager()
     this.#debugManager.disable()
     this.#isDebugging = false
@@ -446,9 +440,9 @@ export default class Thr2pxl {
     this.#boundHandleDebug = this.#handleDebug.bind(this)
     document.addEventListener('keydown', this.#boundHandleDebug)
 
-    if (containerSelector) {
+    if (this.#config.containerSelector) {
       document
-        .querySelector(containerSelector)
+        .querySelector(this.#config.containerSelector)
         ?.appendChild(this.#debugManager.debugger.element)
     }
   }

@@ -19,23 +19,25 @@ export const getSettings = (
   pointerPulseFrequency: string,
 ) => {
   return `{
-    model: {
-      src: {
-        highPoly: <model-high-poly-src>,
-        lowPoly: <model-low-poly-src>
-      },
-      width: <model-width>,
-      height: <model-height>,
-      point: {
-        size: ${modelPointSize},
-        motion: {
-          frequency: ${modelPointMotionFrequency},
-          strength: ${modelPointMotionStrength},
-          ratio: ${modelPointMotionRatio},
-          lifeDecay: ${modelPointMotionLifeDecay}
+    models: {
+      0: {
+        src: {
+          highPoly: <model-high-poly-src>,
+          lowPoly: <model-low-poly-src>
+        },
+        width: <model-width>,
+        height: <model-height>,
+        point: {
+          size: ${modelPointSize},
+          motion: {
+            frequency: ${modelPointMotionFrequency},
+            strength: ${modelPointMotionStrength},
+            ratio: ${modelPointMotionRatio},
+            lifeDecay: ${modelPointMotionLifeDecay}
+          }
         }
-      }
-    },
+      },
+    }, 
     pointer: {
       strength: ${pointerStrength},
       minRad: ${pointerMinRad},

@@ -19,29 +19,31 @@
     import lowPolyQueenModelUrl from './media/models/queen/queen.simplified.glb'
 
     new Thr2Pxl({
-      model: {
-        src: {
-          highPoly: queenModelUrl,
-          lowPoly: lowPolyQueenModelUrl
-        },
-        width: window.innerWidth,
-        height: window.innerHeight,
-        camera: {
-          position: {
-            x: 0,
-            y: 0,
-            z: 5
+      models: {
+        0: {
+          src: {
+            highPoly: queenModelUrl,
+            lowPoly: lowPolyQueenModelUrl
+          },
+          width: window.innerWidth,
+          height: window.innerHeight,
+          camera: {
+            position: {
+              x: 0,
+              y: 0,
+              z: 5
+            }
+          },
+          point: {
+            size: 5,
+            motion: {
+              frequency: 0.1,
+              strength: 1.5,
+              ratio: 0.25,
+              lifeDecay: 0.2
+            }
           }
         },
-        point: {
-          size: 5,
-          motion: {
-            frequency: 0.1,
-            strength: 1.5,
-            ratio: 0.25,
-            lifeDecay: 0.2
-          }
-        }
       },
       pointer: {
         strength: 0.2,

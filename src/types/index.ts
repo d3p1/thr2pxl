@@ -41,11 +41,18 @@ export interface ModelSource {
 }
 
 /**
+ * @note Model by breakpoint
+ */
+export interface ModelSourceCollection {
+  [breakpoint: number]: ModelSource
+}
+
+/**
  * @note Configuration that sets up library behavior
  */
 export interface Config {
   containerSelector?: string
-  model: ModelSource
+  models: ModelSourceCollection
   loader?: {
     dracoUrl?: string
   }
