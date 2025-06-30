@@ -1,3 +1,10 @@
+# [1.11.0](https://github.com/d3p1/thr2pxl/compare/v1.10.3...v1.11.0) (2025-06-30)
+
+
+### Features
+
+* add model by breakpoint [[#1](https://github.com/d3p1/thr2pxl/issues/1)] ([013bb0b](https://github.com/d3p1/thr2pxl/commit/013bb0b75b7c16dd2b1a8760c4a4d04a29282a34))
+
 ## [1.10.3](https://github.com/d3p1/thr2pxl/compare/v1.10.2...v1.10.3) (2025-06-21)
 
 
