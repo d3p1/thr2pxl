@@ -1,3 +1,11 @@
+## [1.11.1](https://github.com/d3p1/thr2pxl/compare/v1.11.0...v1.11.1) (2025-06-30)
+
+
+### Bug Fixes
+
+* adjust debug options when model is updated [[#1](https://github.com/d3p1/thr2pxl/issues/1)] ([bf8c315](https://github.com/d3p1/thr2pxl/commit/bf8c315766e4db1d86ee05efeba5d8f71be589c1))
+* remove unneeded renderer resize logic [[#1](https://github.com/d3p1/thr2pxl/issues/1)] ([f0b7a96](https://github.com/d3p1/thr2pxl/commit/f0b7a96e16942eadda2bd72cce56cf3de393a7a4))
+
 # [1.11.0](https://github.com/d3p1/thr2pxl/compare/v1.10.3...v1.11.0) (2025-06-30)
 
 
