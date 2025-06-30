@@ -1,3 +1,10 @@
+## [1.11.3](https://github.com/d3p1/thr2pxl/compare/v1.11.2...v1.11.3) (2025-06-30)
+
+
+### Bug Fixes
+
+* adjust init logic [[#1](https://github.com/d3p1/thr2pxl/issues/1)] ([e22767c](https://github.com/d3p1/thr2pxl/commit/e22767c4b6fa17d7ef1f8f253f4947c1e80d3740))
+
 ## [1.11.2](https://github.com/d3p1/thr2pxl/compare/v1.11.1...v1.11.2) (2025-06-30)
 
 
