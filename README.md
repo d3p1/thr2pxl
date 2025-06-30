@@ -22,7 +22,7 @@ An efficient model-to-pixel transformation with motion effects, leveraging WebGL
 > If you would like to implement a similar effect on a 2D image, you can use the related library [`d3p1/img2pxl`](https://github.com/d3p1/img2pxl).
 
 > [!NOTE]
-> This library was inspired by these excellent tutorials:
+> This library was inspired by these excellent tutorial:
 > - [Three.js Journey - GPGPU Flow Field Particles](https://threejs-journey.com/lessons/gpgpu-flow-field-particles-shaders).
 
 ## Installation
@@ -65,7 +65,7 @@ Using this library is straightforward:
 3. Instantiate the library with the configuration copied in the previous step, for example:
 
 ```javascript
-import Img2Pxl from '@d3p1/thr2pxl'
+import Thr2pxl from '@d3p1/thr2pxl'
 
 new Thr2pxl({
   models: {
@@ -93,6 +93,7 @@ new Thr2pxl({
       pulseStrength: 0.2,
       pulseFrequency: 1
     }
+  }
 })
 ```
 
