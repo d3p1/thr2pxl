@@ -184,14 +184,29 @@ export default class Thr2pxl {
   dispose(): void {
     cancelAnimationFrame(this.#requestAnimationId)
 
-    window.removeEventListener('resize', this.#boundHandleResize)
-
     this.#timer.dispose()
     this.#app.dispose()
     this.#rendererManager.dispose()
     this.#modelLoaderManager.dispose()
 
     this.#disposeDebugManager()
+    this.#dispose()
+  }
+
+  /**
+   * Dispose/reset this entry point
+   *
+   * @returns {void}
+   */
+  #dispose(): void {
+    window.removeEventListener('resize', this.#boundHandleResize)
+
+    /**
+     * @note Reset debug flag
+     * @todo Improve this logic.
+     *       It was implemented in this way to release faster
+     */
+    this.#isDebugReady = false
   }
 
   /**
