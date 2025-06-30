@@ -187,7 +187,7 @@ export default class FlowFieldManager {
    * @returns {void}
    */
   dispose(): void {
-    this.#gpGpu.dispose()
+    this.#gpGpu?.dispose()
   }
 
   /**
