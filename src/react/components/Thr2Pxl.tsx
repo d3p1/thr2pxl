@@ -2,6 +2,8 @@
  * @description Component
  * @author      C. M. de Picciotto <d3p1@d3p1.dev> (https://d3p1.dev/)
  */
+'use client'
+
 import useThr2Pxl from '../hooks/useThr2Pxl.js'
 import type {Thr2PxlProps} from '../types'
 
