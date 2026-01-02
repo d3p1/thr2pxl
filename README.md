@@ -84,7 +84,7 @@ Using this library is straightforward:
 // Vanilla
 import {Thr2Pxl} from '@d3p1/thr2pxl/core'
 ...
-new Thr2Pxl({
+const config = {
   models: {
     0: {
       src: {
@@ -111,7 +111,8 @@ new Thr2Pxl({
     pulseStrength: 0.2,
     pulseFrequency: 1
   }
-})
+} 
+new Thr2Pxl(config)
 ```
 
 ```javascript
@@ -146,7 +147,6 @@ const config = {
     pulseFrequency: 1
   }
 } 
-...
 return <Thr2Pxl {...config} />
 ```
 
