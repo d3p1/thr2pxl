@@ -4,18 +4,20 @@
   "description": "A 3D (thr) model to pixel transformation with motion effect",
   "private": false,
   "type": "module",
-  "main": "./dist/thr2pxl.umd.cjs",
-  "module": "./dist/thr2pxl.js",
-  "types": "./dist/thr2pxl.d.ts",
+  "main": "./dist/core/index.js",
+  "module": "./dist/core/index.js",
+  "types": "./dist/core/index.d.ts",
   "exports": {
-    ".": {
+    "./core": {
       "import": {
-        "types": "./dist/thr2pxl.d.ts",
-        "default": "./dist/thr2pxl.js"
-      },
-      "require": {
-        "types": "./dist/thr2pxl.d.ts",
-        "default": "./dist/thr2pxl.umd.cjs"
+        "types": "./dist/core/index.d.ts",
+        "default": "./dist/core/index.js"
+      }
+    },
+    "./react": {
+      "import": {
+        "types": "./dist/react/index.d.ts",
+        "default": "./dist/react/index.js"
       }
     }
   },

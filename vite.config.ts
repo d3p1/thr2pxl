@@ -11,12 +11,15 @@ export default defineConfig({
   },
   build: {
     lib: {
-      entry: resolve(__dirname, 'src/thr2pxl.ts'),
-      name: 'thr2pxl',
+      entry: {
+        'core/index': resolve(__dirname, 'src/core/index.ts'),
+        'react/index': resolve(__dirname, 'src/react/index.ts'),
+      },
+      formats: ['es'],
     },
     sourcemap: true,
     rollupOptions: {
-      external: ['three', 'tweakpane'],
+      external: ['three', 'tweakpane', 'react', 'react-dom'],
     },
   },
   assetsInclude: ['**/*.gltf', '**/*.glb'],
