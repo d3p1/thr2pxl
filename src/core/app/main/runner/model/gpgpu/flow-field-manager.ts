@@ -7,8 +7,8 @@
 import * as THREE from 'three'
 import {GPUComputationRenderer} from 'three/addons/misc/GPUComputationRenderer.js'
 import type {Variable} from 'three/addons/misc/GPUComputationRenderer.js'
-import GpGpuManager from '../../../lib/gpgpu-manager.js'
-import DebugManager from '../../../lib/debug-manager.js'
+import GpGpuManager from '../../../../../services/gpgpu-manager.ts'
+import DebugManager from '../../../../../services/debug-manager.ts'
 import fragmentShader from './shader/fragment.glsl'
 
 /**

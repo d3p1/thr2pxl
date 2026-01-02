@@ -8,22 +8,22 @@
  */
 import * as THREE from 'three'
 import {Timer} from 'three/addons/misc/Timer.js'
-import DebugManager from './core/lib/debug-manager.js'
-import ModelLoaderManager from './core/lib/model-loader-manager.js'
-import ModelManager from './core/lib/model-manager.js'
-import RendererManager from './core/lib/renderer-manager.js'
-import GpGpuManager from './core/lib/gpgpu-manager.js'
-import FlowFieldManager from './core/app/model/gpgpu/flow-field-manager.js'
-import Model from './core/app/model.js'
-import Pointer from './core/app/pointer.js'
-import App from './core/app.js'
-import type {Config} from './types'
+import DebugManager from '../services/debug-manager.ts'
+import ModelLoaderManager from '../services/model-loader-manager.ts'
+import ModelManager from '../services/model-manager.ts'
+import RendererManager from '../services/renderer-manager.ts'
+import GpGpuManager from '../services/gpgpu-manager.ts'
+import FlowFieldManager from './main/runner/model/gpgpu/flow-field-manager.ts'
+import Model from './main/runner/model.ts'
+import Pointer from './main/runner/pointer.ts'
+import Runner from './main/runner.ts'
+import type {Config} from '../types'
 
-export default class Thr2pxl {
+export default class Main {
   /**
-   * @type {App}
+   * @type {Runner}
    */
-  #app: App
+  #runner: Runner
 
   /**
    * @type {RendererManager}
@@ -185,7 +185,7 @@ export default class Thr2pxl {
     cancelAnimationFrame(this.#requestAnimationId)
 
     this.#timer.dispose()
-    this.#app.dispose()
+    this.#runner.dispose()
     this.#rendererManager.dispose()
     this.#modelLoaderManager.dispose()
 
@@ -219,7 +219,7 @@ export default class Thr2pxl {
     this.#initTimer()
     this.#initModelLoaderManager()
     this.#initRendererManager()
-    this.#initApp()
+    this.#initRunner()
 
     this.#boundHandleResize = () => {
       if (this.#modelManager.update()) {
@@ -247,7 +247,7 @@ export default class Thr2pxl {
    */
   #render(enableDebug: boolean, t: number = 0): void {
     this.#timer.update(t)
-    this.#app.update(this.#timer.getDelta(), this.#timer.getElapsed())
+    this.#runner.update(this.#timer.getDelta(), this.#timer.getElapsed())
     this.#rendererManager.update(this.#timer.getDelta())
 
     /**
@@ -259,8 +259,8 @@ export default class Thr2pxl {
      */
     if (
       enableDebug &&
-      this.#app.model.points &&
-      this.#app.model.points.material.uniforms.uTime
+      this.#runner.model.points &&
+      this.#runner.model.points.material.uniforms.uTime
     ) {
       this.#isDebugging = true
       this.#enableDebug()
@@ -304,7 +304,7 @@ export default class Thr2pxl {
      *       It was implemented in this way to release faster
      */
     if (!this.#isDebugReady) {
-      this.#app.debug()
+      this.#runner.debug()
       this.#isDebugReady = true
     }
 
@@ -331,14 +331,14 @@ export default class Thr2pxl {
   }
 
   /**
-   * Init app
+   * Init runner
    *
    * @returns {void}
    */
-  #initApp(): void {
+  #initRunner(): void {
     const model = this.#initModel()
     const pointer = this.#initPointer()
-    this.#app = new App(
+    this.#runner = new Runner(
       model,
       pointer,
       this.#rendererManager,
