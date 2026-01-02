@@ -20,5 +20,12 @@ export default defineConfig({
     },
   },
   assetsInclude: ['**/*.gltf', '**/*.glb'],
-  plugins: [tailwindcss(), glsl(), dts()],
+  plugins: [
+    tailwindcss(),
+    glsl(),
+    dts({
+      tsconfigPath: resolve(__dirname, 'tsconfig.app.json'),
+      exclude: ['node_modules/**', 'dev/**'],
+    }),
+  ],
 })
