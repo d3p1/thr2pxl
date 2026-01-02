@@ -1,3 +1,25 @@
+# [2.0.0](https://github.com/d3p1/thr2pxl/compare/v1.11.3...v2.0.0) (2026-01-02)
+
+
+### Bug Fixes
+
+* adjust library type imports [[#1](https://github.com/d3p1/thr2pxl/issues/1)] ([b5da70f](https://github.com/d3p1/thr2pxl/commit/b5da70fd4552c40a6d5d45bac06b4d760555fd41))
+
+
+### Code Refactoring
+
+* improve code structure [[#1](https://github.com/d3p1/thr2pxl/issues/1)] ([dee1d12](https://github.com/d3p1/thr2pxl/commit/dee1d125cd1b557b12634634a3cb25c08e9392f2))
+
+
+### Features
+
+* init react entry point [[#8](https://github.com/d3p1/thr2pxl/issues/8)] ([ccf6da5](https://github.com/d3p1/thr2pxl/commit/ccf6da5adcde62179ebbe245871d5bfdde0e6701))
+
+
+### BREAKING CHANGES
+
+* Update how the image must be consumed
+
 ## [1.11.3](https://github.com/d3p1/thr2pxl/compare/v1.11.2...v1.11.3) (2025-06-30)
 
 
