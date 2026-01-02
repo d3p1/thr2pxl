@@ -5,9 +5,9 @@
  *              pointer and its interactions
  */
 import * as THREE from 'three'
-import ModelLoaderManager from '../../../services/model-loader-manager.ts'
-import RendererManager from '../../../services/renderer-manager.ts'
-import AbstractEntity from './abstract-entity.ts'
+import ModelLoaderManager from '../../../services/model-loader-manager.js'
+import RendererManager from '../../../services/renderer-manager.js'
+import AbstractEntity from './abstract-entity.js'
 
 export default class Pointer extends AbstractEntity {
   /**

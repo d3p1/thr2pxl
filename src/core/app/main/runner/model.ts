@@ -5,10 +5,10 @@
  *              transformation of the model into vertices/points/pixels
  */
 import * as THREE from 'three'
-import ModelLoaderManager from '../../../services/model-loader-manager.ts'
-import AbstractEntity from './abstract-entity.ts'
-import FlowFieldManager from './model/gpgpu/flow-field-manager.ts'
-import DebugManager from '../../../services/debug-manager.ts'
+import ModelLoaderManager from '../../../services/model-loader-manager.js'
+import AbstractEntity from './abstract-entity.js'
+import FlowFieldManager from './model/gpgpu/flow-field-manager.js'
+import DebugManager from '../../../services/debug-manager.js'
 import vertexShader from './model/shader/vertex.glsl'
 import fragmentShader from './model/shader/fragment.glsl'
 

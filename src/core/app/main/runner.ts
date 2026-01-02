@@ -7,10 +7,10 @@
  *              interact between each other
  */
 import * as THREE from 'three'
-import RendererManager from '../../services/renderer-manager.ts'
-import Pointer from './runner/pointer.ts'
-import Model from './runner/model.ts'
-import DebugManager from '../../services/debug-manager.ts'
+import RendererManager from '../../services/renderer-manager.js'
+import Pointer from './runner/pointer.js'
+import Model from './runner/model.js'
+import DebugManager from '../../services/debug-manager.js'
 import parsVertexShader from './runner/shader/pars_vertex.glsl'
 import positionVertexShader from './runner/shader/position_vertex.glsl'
 
