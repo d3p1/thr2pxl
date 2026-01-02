@@ -1,3 +1,10 @@
+## [2.0.1](https://github.com/d3p1/thr2pxl/compare/v2.0.0...v2.0.1) (2026-01-02)
+
+
+### Bug Fixes
+
+* add use client directive to react component [[#8](https://github.com/d3p1/thr2pxl/issues/8)] ([0e26ebd](https://github.com/d3p1/thr2pxl/commit/0e26ebd181727b7874064da042b9c0d89038bc41))
+
 # [2.0.0](https://github.com/d3p1/thr2pxl/compare/v1.11.3...v2.0.0) (2026-01-02)
 
 
