@@ -2,8 +2,9 @@ import {resolve} from 'path'
 import tailwindcss from '@tailwindcss/vite'
 import glsl from 'vite-plugin-glsl'
 import dts from 'vite-plugin-dts'
+import {defineConfig} from 'vite'
 
-export default {
+export default defineConfig({
   base: '/thr2pxl/',
   server: {
     host: true,
@@ -20,4 +21,4 @@ export default {
   },
   assetsInclude: ['**/*.gltf', '**/*.glb'],
   plugins: [tailwindcss(), glsl(), dts()],
-}
+})
