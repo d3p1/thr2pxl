@@ -12,10 +12,8 @@
  *              For now, this class will work as a factory class
  */
 import * as THREE from 'three'
-import {
-  GPUComputationRenderer,
-  Variable,
-} from 'three/addons/misc/GPUComputationRenderer.js'
+import {GPUComputationRenderer} from 'three/addons/misc/GPUComputationRenderer.js'
+import type {Variable} from 'three/addons/misc/GPUComputationRenderer.js'
 import RendererManager from './renderer-manager.js'
 
 /**

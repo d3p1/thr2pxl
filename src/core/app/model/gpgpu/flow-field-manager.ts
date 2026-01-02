@@ -5,10 +5,8 @@
  *              flow field applied to the model
  */
 import * as THREE from 'three'
-import {
-  GPUComputationRenderer,
-  Variable,
-} from 'three/addons/misc/GPUComputationRenderer.js'
+import {GPUComputationRenderer} from 'three/addons/misc/GPUComputationRenderer.js'
+import type {Variable} from 'three/addons/misc/GPUComputationRenderer.js'
 import GpGpuManager from '../../../lib/gpgpu-manager.js'
 import DebugManager from '../../../lib/debug-manager.js'
 import fragmentShader from './shader/fragment.glsl'

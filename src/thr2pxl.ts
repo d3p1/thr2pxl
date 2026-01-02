@@ -17,7 +17,7 @@ import FlowFieldManager from './core/app/model/gpgpu/flow-field-manager.js'
 import Model from './core/app/model.js'
 import Pointer from './core/app/pointer.js'
 import App from './core/app.js'
-import {Config} from './types'
+import type {Config} from './types'
 
 export default class Thr2pxl {
   /**

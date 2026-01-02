@@ -6,7 +6,7 @@
  *              It is defined a model by breakpoint, so it is necessary
  *              to handle which model should be used
  */
-import {ModelSource, ModelSourceCollection} from '../../types'
+import type {ModelSource, ModelSourceCollection} from '../../types'
 
 /**
  * @note The `0` breakpoint must always be set.
