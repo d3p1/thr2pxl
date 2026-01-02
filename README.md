@@ -21,10 +21,6 @@ An efficient model-to-pixel transformation with motion effects, leveraging WebGL
 > [!TIP]
 > If you would like to implement a similar effect on a 2D image, you can use the related library [`d3p1/img2pxl`](https://github.com/d3p1/img2pxl).
 
-> [!NOTE]
-> This library was inspired by these excellent tutorial:
-> - [Three.js Journey - GPGPU Flow Field Particles](https://threejs-journey.com/lessons/gpgpu-flow-field-particles-shaders).
-
 ## Installation
 
 You can install this library using a package manager like `npm`:
@@ -38,6 +34,7 @@ Or you can use a CDN like [jsDelivr](https://www.jsdelivr.com/) and this [import
 ```html
 <head>
   ...
+  <!-- Vanilla -->
   <script type="importmap">
     {
       "imports": {
@@ -51,8 +48,27 @@ Or you can use a CDN like [jsDelivr](https://www.jsdelivr.com/) and this [import
 </head>
 ```
 
+```html
+<head>
+  ...
+  <!-- React -->
+  <script type="importmap">
+    {
+      "imports": {
+        "@d3p1/thr2pxl": "https://cdn.jsdelivr.net/npm/@d3p1/thr2pxl@<version>/dist/thr2pxl.min.js",
+        "react": "https://cdn.jsdelivr.net/npm/react@<version>/jsx-runtime.min.js",
+        "react-dom": "https://cdn.jsdelivr.net/npm/react-dom@<version>/index.min.js",
+        "three": "https://cdn.jsdelivr.net/npm/three@<version>/build/three.module.min.js",
+        "tweakpane": "https://cdn.jsdelivr.net/npm/tweakpane@<version>/dist/tweakpane.min.js"
+      }
+    }
+  </script>
+  ...
+</head>
+```
+
 > [!NOTE]
-> Remember to replace the `<version>` with the actual version of `thr2pxl` and its peer dependencies ([`three`](https://github.com/mrdoob/three.js) and [`tweakpane`](https://github.com/cocopon/tweakpane)). To do that, you can check the [`package.json`](https://github.com/d3p1/thr2pxl/blob/main/package.json) of the last release and get required versions from there.
+> Remember to replace the `<version>` with the actual version of `thr2pxl` and its peer dependencies ([`three`](https://github.com/mrdoob/three.js) - [`tweakpane`](https://github.com/cocopon/tweakpane) - [`react`](https://github.com/facebook/react) - [`react-dom`](https://github.com/facebook/react)). To do that, you can check the [`package.json`](https://github.com/d3p1/thr2pxl/blob/main/package.json) of the last release and get required versions from there.
 
 ## Usage
 
@@ -65,9 +81,10 @@ Using this library is straightforward:
 3. Instantiate the library with the configuration copied in the previous step, for example:
 
 ```javascript
-import Thr2pxl from '@d3p1/thr2pxl'
-
-new Thr2pxl({
+// Vanilla
+import {Thr2Pxl} from '@d3p1/thr2pxl/core'
+...
+new Thr2Pxl({
   models: {
     0: {
       src: {
@@ -95,6 +112,42 @@ new Thr2pxl({
     pulseFrequency: 1
   }
 })
+```
+
+```javascript
+// React
+import {Thr2Pxl} from '@d3p1/thr2pxl/react'
+...
+const config = {
+  models: {
+    0: {
+      src: {
+        highPoly: <model-high-poly-src>,
+        lowPoly: <model-low-poly-src>
+      },
+      width: <model-width>,
+      height: <model-height>,
+      point: {
+        size: 5,
+        motion: {
+          frequency: 0.1,
+          strength: 1.5,
+          ratio: 0.25,
+          lifeDecay: 0.2
+        }
+      }
+    },
+  },
+  pointer: {
+    strength: 0.2,
+    minRad: 1,
+    maxRad: 2,
+    pulseStrength: 0.2,
+    pulseFrequency: 1
+  }
+} 
+...
+return <Thr2Pxl {...config} />
 ```
 
 > [!NOTE]
