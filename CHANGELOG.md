@@ -1,3 +1,10 @@
+## [2.0.2](https://github.com/d3p1/thr2pxl/compare/v2.0.1...v2.0.2) (2026-01-20)
+
+
+### Bug Fixes
+
+* add plugin to avoid removing use client directive on build [[#1](https://github.com/d3p1/thr2pxl/issues/1)] ([0212c9c](https://github.com/d3p1/thr2pxl/commit/0212c9c15e5913ebbb92a9d0536f891a4e0c8ac2))
+
 ## [2.0.1](https://github.com/d3p1/thr2pxl/compare/v2.0.0...v2.0.1) (2026-01-02)
 
 
