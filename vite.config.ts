@@ -1,5 +1,6 @@
 import {resolve} from 'path'
 import tailwindcss from '@tailwindcss/vite'
+import preserveDirectives from 'rollup-preserve-directives'
 import glsl from 'vite-plugin-glsl'
 import dts from 'vite-plugin-dts'
 import {defineConfig} from 'vite'
@@ -30,5 +31,6 @@ export default defineConfig({
       tsconfigPath: resolve(__dirname, 'tsconfig.app.json'),
       exclude: ['node_modules/**', 'dev/**'],
     }),
+    preserveDirectives()
   ],
 })
