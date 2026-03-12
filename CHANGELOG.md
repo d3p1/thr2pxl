@@ -1,3 +1,10 @@
+## [2.0.3](https://github.com/d3p1/thr2pxl/compare/v2.0.2...v2.0.3) (2026-03-12)
+
+
+### Bug Fixes
+
+* adjust how ndc are calculated to solve mobile effect [[#1](https://github.com/d3p1/thr2pxl/issues/1)] ([822dcb5](https://github.com/d3p1/thr2pxl/commit/822dcb5eb6a77311135575012991ca3d57fdc8ef))
+
 ## [2.0.2](https://github.com/d3p1/thr2pxl/compare/v2.0.1...v2.0.2) (2026-01-20)
 
 
