@@ -85,7 +85,12 @@ export default class Pointer extends AbstractEntity {
    */
   #handlePointerMove(e: PointerEvent): void {
     if (this.mesh) {
-      this.#processNdc(e.offsetX, e.offsetY)
+      const target = e.target as HTMLCanvasElement
+      const rect = target.getBoundingClientRect()
+      const x = ((e.clientX - rect.left) / rect.width - 0.5) * 2
+      const y = -((e.clientY - rect.top) / rect.height - 0.5) * 2
+      this.#ndc.set(x, y)
+
       this.#raycaster.setFromCamera(this.#ndc, this.#rendererManager.camera)
       this.intersections = this.#raycaster.intersectObject(this.mesh)
     }
@@ -119,20 +124,6 @@ export default class Pointer extends AbstractEntity {
     this.#rendererManager.renderer.domElement.addEventListener(
       'pointerleave',
       this.#boundHandlePointerLeave,
-    )
-  }
-
-  /**
-   * Process normalized device coordinates
-   *
-   * @param   {number} x
-   * @param   {number} y
-   * @returns {void}
-   */
-  #processNdc(x: number, y: number): void {
-    this.#ndc.set(
-      (x / this.#rendererManager.renderer.domElement.width - 0.5) * 2,
-      -((y / this.#rendererManager.renderer.domElement.height - 0.5) * 2),
     )
   }
 }
