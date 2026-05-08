@@ -4,7 +4,7 @@
  * @note        By default, debugger is hidden in mobile version
  *              to avoid usability issues
  */
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @theme {
     --color-primary-800: hsl(220, 8%, 7%);

@@ -32,96 +32,96 @@ const DEFAULT_VAR_NAME: string = 'textureData'
 const TEXEL_GROUP_SIZE: number = 4
 
 export default class GpGpuManager {
-  /**
-   * @type {RendererManager}
-   */
-  #rendererManager: RendererManager
+    /**
+     * @type {RendererManager}
+     */
+    #rendererManager: RendererManager
 
-  /**
-   * Constructor
-   *
-   * @param {RendererManager}  rendererManager
-   */
-  constructor(rendererManager: RendererManager) {
-    this.#rendererManager = rendererManager
-  }
-
-  /**
-   * Create GPGPU
-   *
-   * @param   {THREE.TypedArray} texelData
-   * @param   {string}           fragmentShader
-   * @returns {[GPUComputationRenderer, Variable]}
-   * @throws  Error
-   * @note    This method will work as a factory method that returns
-   *          instances to work with GPGPU
-   */
-  create(
-    texelData: THREE.TypedArray,
-    fragmentShader: string,
-  ): [GPUComputationRenderer, Variable] {
-    const gpGpu = this.#createGpGpuRenderer(texelData)
-    const gpGpuVar = this.#createGpGpuVar(gpGpu, texelData, fragmentShader)
-
-    const error = gpGpu.init()
-    if (error) {
-      throw new Error(error)
+    /**
+     * Constructor
+     *
+     * @param {RendererManager}  rendererManager
+     */
+    constructor(rendererManager: RendererManager) {
+        this.#rendererManager = rendererManager
     }
 
-    return [gpGpu, gpGpuVar]
-  }
+    /**
+     * Create GPGPU
+     *
+     * @param   {THREE.TypedArray} texelData
+     * @param   {string}           fragmentShader
+     * @returns {[GPUComputationRenderer, Variable]}
+     * @throws  Error
+     * @note    This method will work as a factory method that returns
+     *          instances to work with GPGPU
+     */
+    create(
+        texelData: THREE.TypedArray,
+        fragmentShader: string,
+    ): [GPUComputationRenderer, Variable] {
+        const gpGpu = this.#createGpGpuRenderer(texelData)
+        const gpGpuVar = this.#createGpGpuVar(gpGpu, texelData, fragmentShader)
 
-  /**
-   * Create GPGPU variable
-   *
-   * @param   {GPUComputationRenderer} gpGpu
-   * @param   {THREE.TypedArray}       texelData
-   * @param   {string}                 fragmentShader
-   * @returns {Variable}
-   * @note    For now, `texelData` must have 4 floats for each compute element
-   * @note    The variable fragment shader will have the texture uniform used
-   *          as FBO (`textureData`), but also a uniform
-   *          that preserves the initial texture (`uBaseDataTexture`)
-   * @see     DEFAULT_VAR_NAME
-   * @see     TEXEL_GROUP_SIZE
-   */
-  #createGpGpuVar(
-    gpGpu: GPUComputationRenderer,
-    texelData: THREE.TypedArray,
-    fragmentShader: string,
-  ): Variable {
-    const texture = gpGpu.createTexture()
-    const imageData = texture.image.data as THREE.TypedArray
-    imageData.set(texelData)
+        const error = gpGpu.init()
+        if (error) {
+            throw new Error(error)
+        }
 
-    const gpGpuVar = gpGpu.addVariable(
-      DEFAULT_VAR_NAME,
-      fragmentShader,
-      texture,
-    )
-    gpGpu.setVariableDependencies(gpGpuVar, [gpGpuVar])
+        return [gpGpu, gpGpuVar]
+    }
 
-    gpGpuVar.material.uniforms.uBaseDataTexture = new THREE.Uniform(texture)
+    /**
+     * Create GPGPU variable
+     *
+     * @param   {GPUComputationRenderer} gpGpu
+     * @param   {THREE.TypedArray}       texelData
+     * @param   {string}                 fragmentShader
+     * @returns {Variable}
+     * @note    For now, `texelData` must have 4 floats for each compute element
+     * @note    The variable fragment shader will have the texture uniform used
+     *          as FBO (`textureData`), but also a uniform
+     *          that preserves the initial texture (`uBaseDataTexture`)
+     * @see     DEFAULT_VAR_NAME
+     * @see     TEXEL_GROUP_SIZE
+     */
+    #createGpGpuVar(
+        gpGpu: GPUComputationRenderer,
+        texelData: THREE.TypedArray,
+        fragmentShader: string,
+    ): Variable {
+        const texture = gpGpu.createTexture()
+        const imageData = texture.image.data as THREE.TypedArray
+        imageData.set(texelData)
 
-    return gpGpuVar
-  }
+        const gpGpuVar = gpGpu.addVariable(
+            DEFAULT_VAR_NAME,
+            fragmentShader,
+            texture,
+        )
+        gpGpu.setVariableDependencies(gpGpuVar, [gpGpuVar])
 
-  /**
-   * Create GPGPU renderer
-   *
-   * @param   {THREE.TypedArray} texelData
-   * @returns {GPUComputationRenderer}
-   * @note    For now, `texelData` must have 4 floats for each compute element
-   * @see     TEXEL_GROUP_SIZE
-   */
-  #createGpGpuRenderer(texelData: THREE.TypedArray): GPUComputationRenderer {
-    const texelCount = texelData.length / TEXEL_GROUP_SIZE
-    const size = Math.ceil(Math.sqrt(texelCount))
+        gpGpuVar.material.uniforms.uBaseDataTexture = new THREE.Uniform(texture)
 
-    return new GPUComputationRenderer(
-      size,
-      size,
-      this.#rendererManager.renderer,
-    )
-  }
+        return gpGpuVar
+    }
+
+    /**
+     * Create GPGPU renderer
+     *
+     * @param   {THREE.TypedArray} texelData
+     * @returns {GPUComputationRenderer}
+     * @note    For now, `texelData` must have 4 floats for each compute element
+     * @see     TEXEL_GROUP_SIZE
+     */
+    #createGpGpuRenderer(texelData: THREE.TypedArray): GPUComputationRenderer {
+        const texelCount = texelData.length / TEXEL_GROUP_SIZE
+        const size = Math.ceil(Math.sqrt(texelCount))
+
+        return new GPUComputationRenderer(
+            size,
+            size,
+            this.#rendererManager.renderer,
+        )
+    }
 }

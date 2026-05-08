@@ -7,18 +7,18 @@
  *              debug manager
  */
 export const getSettings = (
-  modelPointSize: string,
-  modelPointMotionFrequency: string,
-  modelPointMotionStrength: string,
-  modelPointMotionRatio: string,
-  modelPointMotionLifeDecay: string,
-  pointerStrength: string,
-  pointerMinRad: string,
-  pointerMaxRad: string,
-  pointerPulseStrength: string,
-  pointerPulseFrequency: string,
+    modelPointSize: string,
+    modelPointMotionFrequency: string,
+    modelPointMotionStrength: string,
+    modelPointMotionRatio: string,
+    modelPointMotionLifeDecay: string,
+    pointerStrength: string,
+    pointerMinRad: string,
+    pointerMaxRad: string,
+    pointerPulseStrength: string,
+    pointerPulseFrequency: string,
 ) => {
-  return `{
+    return `{
     models: {
       0: {
         src: {

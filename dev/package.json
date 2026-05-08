@@ -1,1 +1,5 @@
-{"dependencies":{"@d3p1/thr2pxl":"file:.."}}
+{
+    "dependencies": {
+        "@d3p1/thr2pxl": "file:.."
+    }
+}

@@ -10,120 +10,124 @@ import RendererManager from '../../../services/renderer-manager.js'
 import AbstractEntity from './abstract-entity.js'
 
 export default class Pointer extends AbstractEntity {
-  /**
-   * @type {THREE.Intersection<THREE.Object3D<THREE.Object3DEventMap>>[]}
-   */
-  intersections: THREE.Intersection<THREE.Object3D<THREE.Object3DEventMap>>[] =
-    []
+    /**
+     * @type {THREE.Intersection<THREE.Object3D<THREE.Object3DEventMap>>[]}
+     */
+    intersections: THREE.Intersection<
+        THREE.Object3D<THREE.Object3DEventMap>
+    >[] = []
 
-  /**
-   * @type {THREE.Raycaster}
-   */
-  #raycaster: THREE.Raycaster
+    /**
+     * @type {THREE.Raycaster}
+     */
+    #raycaster: THREE.Raycaster
 
-  /**
-   * @type {THREE.Vector2}
-   * @note Normalize device coordinates.
-   *       Coordinates required by the raycaster
-   */
-  #ndc: THREE.Vector2
+    /**
+     * @type {THREE.Vector2}
+     * @note Normalize device coordinates.
+     *       Coordinates required by the raycaster
+     */
+    #ndc: THREE.Vector2
 
-  /**
-   * @type {RendererManager}
-   */
-  #rendererManager: RendererManager
+    /**
+     * @type {RendererManager}
+     */
+    #rendererManager: RendererManager
 
-  /**
-   * @type {(e: PointerEvent) => void}
-   */
-  #boundHandlePointerMove: (e: PointerEvent) => void
+    /**
+     * @type {(e: PointerEvent) => void}
+     */
+    #boundHandlePointerMove: (e: PointerEvent) => void
 
-  /**
-   * @type {() => void}
-   */
-  #boundHandlePointerLeave: () => void
+    /**
+     * @type {() => void}
+     */
+    #boundHandlePointerLeave: () => void
 
-  /**
-   * Constructor
-   *
-   * @param {RendererManager}    rendererManager
-   * @param {string}             modelUrl
-   * @param {ModelLoaderManager} modelLoaderManager
-   */
-  constructor(
-    rendererManager: RendererManager,
-    modelUrl: string,
-    modelLoaderManager: ModelLoaderManager,
-  ) {
-    super(modelUrl, modelLoaderManager)
+    /**
+     * Constructor
+     *
+     * @param {RendererManager}    rendererManager
+     * @param {string}             modelUrl
+     * @param {ModelLoaderManager} modelLoaderManager
+     */
+    constructor(
+        rendererManager: RendererManager,
+        modelUrl: string,
+        modelLoaderManager: ModelLoaderManager,
+    ) {
+        super(modelUrl, modelLoaderManager)
 
-    this.#rendererManager = rendererManager
-    this.#initRaycaster()
-  }
-
-  /**
-   * @inheritdoc
-   */
-  dispose(): void {
-    this.#rendererManager.renderer.domElement.removeEventListener(
-      'pointermove',
-      this.#boundHandlePointerMove,
-    )
-    this.#rendererManager.renderer.domElement.removeEventListener(
-      'pointerleave',
-      this.#boundHandlePointerLeave,
-    )
-
-    super.dispose()
-  }
-
-  /**
-   * Handle pointer move
-   *
-   * @param   {PointerEvent} e
-   * @returns {void}
-   */
-  #handlePointerMove(e: PointerEvent): void {
-    if (this.mesh) {
-      const target = e.target as HTMLCanvasElement
-      const rect = target.getBoundingClientRect()
-      const x = ((e.clientX - rect.left) / rect.width - 0.5) * 2
-      const y = -((e.clientY - rect.top) / rect.height - 0.5) * 2
-      this.#ndc.set(x, y)
-
-      this.#raycaster.setFromCamera(this.#ndc, this.#rendererManager.camera)
-      this.intersections = this.#raycaster.intersectObject(this.mesh)
+        this.#rendererManager = rendererManager
+        this.#initRaycaster()
     }
-  }
 
-  /**
-   * Handle pointer leave
-   *
-   * @returns {void}
-   */
-  #handlePointerLeave(): void {
-    this.intersections = []
-  }
+    /**
+     * @inheritdoc
+     */
+    dispose(): void {
+        this.#rendererManager.renderer.domElement.removeEventListener(
+            'pointermove',
+            this.#boundHandlePointerMove,
+        )
+        this.#rendererManager.renderer.domElement.removeEventListener(
+            'pointerleave',
+            this.#boundHandlePointerLeave,
+        )
 
-  /**
-   * Init raycaster
-   *
-   * @returns {void}
-   */
-  #initRaycaster(): void {
-    this.#ndc = new THREE.Vector2()
-    this.#raycaster = new THREE.Raycaster()
+        super.dispose()
+    }
 
-    this.#boundHandlePointerMove = this.#handlePointerMove.bind(this)
-    this.#boundHandlePointerLeave = this.#handlePointerLeave.bind(this)
+    /**
+     * Handle pointer move
+     *
+     * @param   {PointerEvent} e
+     * @returns {void}
+     */
+    #handlePointerMove(e: PointerEvent): void {
+        if (this.mesh) {
+            const target = e.target as HTMLCanvasElement
+            const rect = target.getBoundingClientRect()
+            const x = ((e.clientX - rect.left) / rect.width - 0.5) * 2
+            const y = -((e.clientY - rect.top) / rect.height - 0.5) * 2
+            this.#ndc.set(x, y)
 
-    this.#rendererManager.renderer.domElement.addEventListener(
-      'pointermove',
-      this.#boundHandlePointerMove,
-    )
-    this.#rendererManager.renderer.domElement.addEventListener(
-      'pointerleave',
-      this.#boundHandlePointerLeave,
-    )
-  }
+            this.#raycaster.setFromCamera(
+                this.#ndc,
+                this.#rendererManager.camera,
+            )
+            this.intersections = this.#raycaster.intersectObject(this.mesh)
+        }
+    }
+
+    /**
+     * Handle pointer leave
+     *
+     * @returns {void}
+     */
+    #handlePointerLeave(): void {
+        this.intersections = []
+    }
+
+    /**
+     * Init raycaster
+     *
+     * @returns {void}
+     */
+    #initRaycaster(): void {
+        this.#ndc = new THREE.Vector2()
+        this.#raycaster = new THREE.Raycaster()
+
+        this.#boundHandlePointerMove = this.#handlePointerMove.bind(this)
+        this.#boundHandlePointerLeave = this.#handlePointerLeave.bind(this)
+
+        this.#rendererManager.renderer.domElement.addEventListener(
+            'pointermove',
+            this.#boundHandlePointerMove,
+        )
+        this.#rendererManager.renderer.domElement.addEventListener(
+            'pointerleave',
+            this.#boundHandlePointerLeave,
+        )
+    }
 }

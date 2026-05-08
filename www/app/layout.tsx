@@ -9,32 +9,32 @@ import './css/globals.css'
 import Logo from '@/app/component/Logo'
 
 const audiowide = Audiowide({
-  subsets: ['latin'],
-  weight: '400',
+    subsets: ['latin'],
+    weight: '400',
 })
 
 export const metadata: Metadata = {
-  title: 'thr2pxl',
-  description: 'thr2pxl',
+    title: 'thr2pxl',
+    description: 'thr2pxl',
 }
 
 export default function RootLayout({
-  children,
+    children,
 }: Readonly<{
-  children: React.ReactNode
+    children: React.ReactNode
 }>) {
-  return (
-    <html lang="en">
-      <body
-        className={`${audiowide.className} antialiased w-screen h-screen overflow-hidden grid grid-cols-10 grid-rows-1 place-items-center bg-primary-800`}
-      >
-        <header className="col-start-1 col-span-2 px-4">
-          <Logo />
-        </header>
-        <main className="relative w-full h-11/12 col-start-3 col-end-10 bg-primary-600 rounded-xl inset-shadow-[0_0_0.3rem_black]">
-          {children}
-        </main>
-      </body>
-    </html>
-  )
+    return (
+        <html lang="en">
+            <body
+                className={`${audiowide.className} antialiased w-screen h-screen overflow-hidden grid grid-cols-10 grid-rows-1 place-items-center bg-primary-800`}
+            >
+                <header className="col-start-1 col-span-2 px-4">
+                    <Logo />
+                </header>
+                <main className="relative w-full h-11/12 col-start-3 col-end-10 bg-primary-600 rounded-xl inset-shadow-[0_0_0.3rem_black]">
+                    {children}
+                </main>
+            </body>
+        </html>
+    )
 }

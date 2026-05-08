@@ -8,7 +8,7 @@ import useThr2Pxl from '../hooks/useThr2Pxl.js'
 import type {Thr2PxlProps} from '../types'
 
 export default function Thr2Pxl(props: Thr2PxlProps) {
-  useThr2Pxl({...props, containerSelector: '#thr2pxl'})
+    useThr2Pxl({...props, containerSelector: '#thr2pxl'})
 
-  return <div id="thr2pxl"></div>
+    return <div id="thr2pxl"></div>
 }

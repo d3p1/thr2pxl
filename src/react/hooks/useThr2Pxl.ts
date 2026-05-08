@@ -6,14 +6,14 @@ import {useEffect, useRef} from 'react'
 import {type Config, Thr2Pxl} from '../../core'
 
 export default function useThr2Pxl(config: Config) {
-  const instanceRef = useRef<Thr2Pxl>(null)
+    const instanceRef = useRef<Thr2Pxl>(null)
 
-  useEffect(() => {
-    instanceRef.current?.dispose()
-    instanceRef.current = new Thr2Pxl(config)
+    useEffect(() => {
+        instanceRef.current?.dispose()
+        instanceRef.current = new Thr2Pxl(config)
 
-    return () => instanceRef.current?.dispose()
-  }, [config])
+        return () => instanceRef.current?.dispose()
+    }, [config])
 
-  return instanceRef
+    return instanceRef
 }

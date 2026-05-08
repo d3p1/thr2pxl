@@ -5,5 +5,5 @@
 import Lib from '@/app/component/Lib'
 
 export default function HomePage() {
-  return <Lib />
+    return <Lib />
 }

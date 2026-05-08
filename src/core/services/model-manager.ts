@@ -15,166 +15,166 @@ import type {ModelSource, ModelSourceCollection} from '../types'
 const DEFAULT_MODEL_BREAKPOINT = 0
 
 export default class ModelManager {
-  /**
-   * @type {{
-   *   src: {
-   *     highPoly: string;
-   *     lowPoly : string;
-   *   };
-   *   width  : number;
-   *   height : number;
-   *   camera?: {
-   *     position?: {
-   *       x: number;
-   *       y: number;
-   *       z: number;
-   *     };
-   *     fov              ?: number;
-   *     near             ?: number;
-   *     far              ?: number;
-   *     isControlsEnabled?: boolean;
-   *   };
-   *   point?: {
-   *     size  ?: number;
-   *     motion?: {
-   *       frequency?: number;
-   *       strength ?: number;
-   *       ratio    ?: number;
-   *       lifeDecay?: number;
-   *     }
-   *   }
-   * }[]}
-   */
-  models: ModelSourceCollection
+    /**
+     * @type {{
+     *   src: {
+     *     highPoly: string;
+     *     lowPoly : string;
+     *   };
+     *   width  : number;
+     *   height : number;
+     *   camera?: {
+     *     position?: {
+     *       x: number;
+     *       y: number;
+     *       z: number;
+     *     };
+     *     fov              ?: number;
+     *     near             ?: number;
+     *     far              ?: number;
+     *     isControlsEnabled?: boolean;
+     *   };
+     *   point?: {
+     *     size  ?: number;
+     *     motion?: {
+     *       frequency?: number;
+     *       strength ?: number;
+     *       ratio    ?: number;
+     *       lifeDecay?: number;
+     *     }
+     *   }
+     * }[]}
+     */
+    models: ModelSourceCollection
 
-  /**
-   * @type {{
-   *   src: {
-   *     highPoly: string;
-   *     lowPoly : string;
-   *   };
-   *   width  : number;
-   *   height : number;
-   *   camera?: {
-   *     position?: {
-   *       x: number;
-   *       y: number;
-   *       z: number;
-   *     };
-   *     fov              ?: number;
-   *     near             ?: number;
-   *     far              ?: number;
-   *     isControlsEnabled?: boolean;
-   *   };
-   *   point?: {
-   *     size  ?: number;
-   *     motion?: {
-   *       frequency?: number;
-   *       strength ?: number;
-   *       ratio    ?: number;
-   *       lifeDecay?: number;
-   *     }
-   *   }
-   * }}
-   */
-  currentModel: ModelSource
+    /**
+     * @type {{
+     *   src: {
+     *     highPoly: string;
+     *     lowPoly : string;
+     *   };
+     *   width  : number;
+     *   height : number;
+     *   camera?: {
+     *     position?: {
+     *       x: number;
+     *       y: number;
+     *       z: number;
+     *     };
+     *     fov              ?: number;
+     *     near             ?: number;
+     *     far              ?: number;
+     *     isControlsEnabled?: boolean;
+     *   };
+     *   point?: {
+     *     size  ?: number;
+     *     motion?: {
+     *       frequency?: number;
+     *       strength ?: number;
+     *       ratio    ?: number;
+     *       lifeDecay?: number;
+     *     }
+     *   }
+     * }}
+     */
+    currentModel: ModelSource
 
-  /**
-   * @type {number}
-   */
-  #currentBreakpoint: number
+    /**
+     * @type {number}
+     */
+    #currentBreakpoint: number
 
-  /**
-   * @type {number[]}
-   */
-  #breakpoints: number[]
+    /**
+     * @type {number[]}
+     */
+    #breakpoints: number[]
 
-  /**
-   * Constructor
-   *
-   * @param {{
-   *             src: {
-   *               highPoly: string;
-   *               lowPoly : string;
-   *             };
-   *             width  : number;
-   *             height : number;
-   *             camera?: {
-   *               position?: {
-   *                 x: number;
-   *                 y: number;
-   *                 z: number;
-   *               };
-   *               fov              ?: number;
-   *               near             ?: number;
-   *               far              ?: number;
-   *               isControlsEnabled?: boolean;
-   *             };
-   *             point?: {
-   *               size  ?: number;
-   *               motion?: {
-   *                 frequency?: number;
-   *                 strength ?: number;
-   *                 ratio    ?: number;
-   *                 lifeDecay?: number;
-   *               }
-   *             }
-   *         }[]} models
-   * @throws {Error}
-   */
-  constructor(models: ModelSourceCollection) {
-    this.models = models
-    this.#initBreakpointsFromModels(Object.keys(this.models).map(Number))
-    this.update()
-  }
-
-  /**
-   * Taking into consideration window size,
-   * it is selected the breakpoint and model to be used
-   *
-   * @returns {boolean}
-   * @note    Each breakpoint defines the `min-width` at which
-   *          a specific model should be used.
-   *          That is why it is returned
-   *          the greater breakpoint that is less than or equal
-   *          the window size
-   */
-  update(): boolean {
-    const width = window.innerWidth
-
-    const currentBreakpoint = this.#breakpoints.reduce(
-      (max, breakpoint) =>
-        breakpoint <= width && breakpoint > max ? breakpoint : max,
-      DEFAULT_MODEL_BREAKPOINT,
-    )
-
-    if (currentBreakpoint !== this.#currentBreakpoint) {
-      this.#currentBreakpoint = currentBreakpoint
-      this.currentModel = this.models[this.#currentBreakpoint]
-      return true
+    /**
+     * Constructor
+     *
+     * @param {{
+     *             src: {
+     *               highPoly: string;
+     *               lowPoly : string;
+     *             };
+     *             width  : number;
+     *             height : number;
+     *             camera?: {
+     *               position?: {
+     *                 x: number;
+     *                 y: number;
+     *                 z: number;
+     *               };
+     *               fov              ?: number;
+     *               near             ?: number;
+     *               far              ?: number;
+     *               isControlsEnabled?: boolean;
+     *             };
+     *             point?: {
+     *               size  ?: number;
+     *               motion?: {
+     *                 frequency?: number;
+     *                 strength ?: number;
+     *                 ratio    ?: number;
+     *                 lifeDecay?: number;
+     *               }
+     *             }
+     *         }[]} models
+     * @throws {Error}
+     */
+    constructor(models: ModelSourceCollection) {
+        this.models = models
+        this.#initBreakpointsFromModels(Object.keys(this.models).map(Number))
+        this.update()
     }
 
-    return false
-  }
+    /**
+     * Taking into consideration window size,
+     * it is selected the breakpoint and model to be used
+     *
+     * @returns {boolean}
+     * @note    Each breakpoint defines the `min-width` at which
+     *          a specific model should be used.
+     *          That is why it is returned
+     *          the greater breakpoint that is less than or equal
+     *          the window size
+     */
+    update(): boolean {
+        const width = window.innerWidth
 
-  /**
-   * Init breakpoints from models
-   *
-   * @param   {number[]} breakpoints
-   * @returns {void}
-   * @throws  {Error}
-   */
-  #initBreakpointsFromModels(breakpoints: number[]): void {
-    if (
-      breakpoints.find(
-        (breakpoint) => breakpoint === DEFAULT_MODEL_BREAKPOINT,
-      ) === undefined
-    ) {
-      throw new Error(
-        'The `0` breakpoint is required. It defines the default model that should be used.',
-      )
+        const currentBreakpoint = this.#breakpoints.reduce(
+            (max, breakpoint) =>
+                breakpoint <= width && breakpoint > max ? breakpoint : max,
+            DEFAULT_MODEL_BREAKPOINT,
+        )
+
+        if (currentBreakpoint !== this.#currentBreakpoint) {
+            this.#currentBreakpoint = currentBreakpoint
+            this.currentModel = this.models[this.#currentBreakpoint]
+            return true
+        }
+
+        return false
     }
 
-    this.#breakpoints = breakpoints
-  }
+    /**
+     * Init breakpoints from models
+     *
+     * @param   {number[]} breakpoints
+     * @returns {void}
+     * @throws  {Error}
+     */
+    #initBreakpointsFromModels(breakpoints: number[]): void {
+        if (
+            breakpoints.find(
+                (breakpoint) => breakpoint === DEFAULT_MODEL_BREAKPOINT,
+            ) === undefined
+        ) {
+            throw new Error(
+                'The `0` breakpoint is required. It defines the default model that should be used.',
+            )
+        }
+
+        this.#breakpoints = breakpoints
+    }
 }

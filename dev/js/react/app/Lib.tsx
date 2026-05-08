@@ -6,6 +6,6 @@ import {useThr2Pxl} from '@d3p1/thr2pxl/react'
 import {config} from '../../etc/config.js'
 
 export default function Lib() {
-  useThr2Pxl(config)
-  return null
+    useThr2Pxl(config)
+    return null
 }
