@@ -1,3 +1,10 @@
+## [2.0.4](https://github.com/d3p1/thr2pxl/compare/v2.0.3...v2.0.4) (2026-05-08)
+
+
+### Bug Fixes
+
+* improve code style [[#1](https://github.com/d3p1/thr2pxl/issues/1)] ([9179126](https://github.com/d3p1/thr2pxl/commit/91791269dc77c26a75165e53cc0cccf964401d61))
+
 ## [2.0.3](https://github.com/d3p1/thr2pxl/compare/v2.0.2...v2.0.3) (2026-03-12)
 
 
